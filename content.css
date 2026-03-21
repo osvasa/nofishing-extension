@@ -24,9 +24,9 @@
   50% { background-color: #8B0000; }
 }
 
-@keyframes ringPulse {
-  0%, 100% { border-width: 4px; }
-  50% { border-width: 12px; }
+@keyframes iconBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
 }
 
 @keyframes textFlash {
@@ -64,19 +64,18 @@
 
 /* Icon ring */
 .nf-icon-ring {
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
+  width: 150px;
+  height: 150px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto 24px;
+  background: none;
+  border: none;
 }
 
 .nf-danger .nf-icon-ring {
-  background: rgba(236, 34, 12, 0.15);
-  border: 4px solid rgba(255, 255, 255, 0.9);
-  animation: ringPulse 2s ease-in-out infinite;
+  animation: iconBlink 2s ease-in-out infinite;
 }
 
 .nf-warning .nf-icon-ring {
@@ -85,10 +84,9 @@
 }
 
 .nf-shield-icon {
-  width: 52px;
-  height: 52px;
+  width: 150px;
+  height: 150px;
   object-fit: contain;
-  border-radius: 4px;
 }
 
 /* Title */
