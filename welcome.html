@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Welcome — NøFishing AI</title>
+<link rel="stylesheet" href="welcome.css"/>
+</head>
+<body>
+  <div class="welcome-header">
+    <img src="icons/logo.png" alt="NøFishing AI" class="header-logo"/>
+  </div>
+
+  <div class="welcome-container">
+
+    <!-- Step 1: Welcome -->
+    <div id="step-welcome" class="step active">
+      <div class="step-inner">
+        <img src="icons/fish-bubbles-white.png" alt="NøFishing AI" class="hero-img"/>
+        <h1 class="hero-title">NøFishing <span>AI</span></h1>
+        <p class="hero-subtitle">AI-powered protection against phishing, scams, and malicious websites — working silently in the background so you don't have to worry.</p>
+
+        <div class="features">
+          <div class="feature">
+            <div class="feature-dot"></div>
+            <div>
+              <h3>Real-time detection</h3>
+              <p>Every URL is analyzed instantly using advanced heuristics</p>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-dot"></div>
+            <div>
+              <h3>Zero configuration</h3>
+              <p>Works automatically — no settings to tweak or lists to manage</p>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-dot"></div>
+            <div>
+              <h3>Privacy first</h3>
+              <p>All analysis happens locally — your browsing data never leaves your device</p>
+            </div>
+          </div>
+        </div>
+
+        <button id="btn-get-started" class="btn-primary">Get Started</button>
+
+        <div class="welcome-footer">
+          <p>AI-Powered Phishing Protection</p>
+          <p>Copyright 2025 No Fishing AI All Rights Reserved</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Create Account -->
+    <div id="step-account" class="step">
+      <div class="step-inner">
+        <img src="icons/fish-bubbles-white.png" alt="NøFishing AI" class="logo-mark-small"/>
+        <h2 class="step-title">Create your account</h2>
+        <p class="step-subtitle">Set up your NøFishing AI account to activate protection.</p>
+
+        <form id="account-form" class="form" novalidate>
+          <div class="field">
+            <label for="field-name">Full Name</label>
+            <input id="field-name" type="text" placeholder="Jane Smith"/>
+            <p class="field-error hidden" id="error-name"></p>
+          </div>
+          <div class="field">
+            <label for="field-email">Email</label>
+            <input id="field-email" type="email" placeholder="you@example.com"/>
+            <p class="field-error hidden" id="error-email"></p>
+          </div>
+          <div class="field">
+            <label for="field-password">Password</label>
+            <div class="password-wrap">
+              <input id="field-password" type="password" placeholder="6+ characters"/>
+              <button type="button" id="toggle-pw" class="pw-toggle" aria-label="Toggle password visibility">
+                <svg id="pw-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg id="pw-eye-off" class="hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+            </div>
+            <p class="field-error hidden" id="error-password"></p>
+          </div>
+
+          <button type="submit" class="btn-primary" id="btn-create-account">
+            <span id="btn-create-text">Create Account</span>
+            <span id="btn-create-loading" class="hidden">Creating...</span>
+          </button>
+        </form>
+
+        <p class="alt-action">Already have an account? <button id="btn-go-login" class="link-btn">Sign in</button></p>
+      </div>
+    </div>
+
+    <!-- Step 2b: Sign In -->
+    <div id="step-login" class="step">
+      <div class="step-inner">
+        <img src="icons/fish-bubbles-white.png" alt="NøFishing AI" class="logo-mark-small"/>
+        <h2 class="step-title">Sign in</h2>
+        <p class="step-subtitle">Welcome back. Sign in to activate your protection.</p>
+
+        <form id="login-form" class="form" novalidate>
+          <div class="field">
+            <label for="login-email">Email</label>
+            <input id="login-email" type="email" placeholder="you@example.com"/>
+            <p class="field-error hidden" id="login-error-email"></p>
+          </div>
+          <div class="field">
+            <label for="login-password">Password</label>
+            <input id="login-password" type="password" placeholder="Your password"/>
+            <p class="field-error hidden" id="login-error-password"></p>
+          </div>
+
+          <div id="login-error" class="form-error hidden"></div>
+
+          <button type="submit" class="btn-primary" id="btn-login">
+            <span id="btn-login-text">Sign In</span>
+            <span id="btn-login-loading" class="hidden">Signing in...</span>
+          </button>
+        </form>
+
+        <p class="alt-action">Don't have an account? <button id="btn-go-signup" class="link-btn">Create one</button></p>
+      </div>
+    </div>
+
+    <!-- Step 3: Choose Plan -->
+    <div id="step-plan" class="step">
+      <div class="step-inner">
+        <img src="icons/fish-bubbles-white.png" alt="NøFishing AI" class="logo-mark-small"/>
+        <h2 class="step-title">Choose your plan</h2>
+        <p class="step-subtitle">Select a plan to activate NøFishing AI protection.</p>
+
+        <div class="plans">
+          <div class="plan-card" id="plan-monthly">
+            <div class="plan-badge">Monthly</div>
+            <div class="plan-price"><span class="plan-currency">$</span>4<span class="plan-cents">.99</span></div>
+            <div class="plan-period">per month</div>
+            <ul class="plan-perks">
+              <li>Real-time phishing detection</li>
+              <li>Full-screen threat warnings</li>
+              <li>Cancel anytime</li>
+            </ul>
+            <button class="btn-plan" data-plan="monthly">Start Monthly</button>
+          </div>
+
+          <div class="plan-card popular" id="plan-yearly">
+            <div class="plan-popular-tag">Save 17%</div>
+            <div class="plan-badge">Yearly</div>
+            <div class="plan-price"><span class="plan-currency">$</span>49<span class="plan-cents">.99</span></div>
+            <div class="plan-period">per year</div>
+            <ul class="plan-perks">
+              <li>Everything in Monthly</li>
+              <li>2 months free</li>
+              <li>Priority support</li>
+            </ul>
+            <button class="btn-plan" data-plan="yearly">Start Yearly</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+<script src="welcome.js"></script>
+</body>
+</html>
