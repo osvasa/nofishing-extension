@@ -32,7 +32,7 @@
 
         <h1 class="nf-title">${isDanger ? 'PHISHING DETECTED' : 'SUSPICIOUS SITE'}</h1>
         <p class="nf-subtitle">${isDanger
-          ? 'This site has been identified as a phishing or scam page. Your personal information is at risk.'
+          ? 'WARNING. This site is actively trying to steal your passwords, financial information, and personal data. Do not type anything. Leave immediately.'
           : 'This site shows signs of being potentially unsafe. Proceed with caution.'
         }</p>
 
