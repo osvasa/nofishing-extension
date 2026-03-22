@@ -13,9 +13,18 @@
   function createOverlay(data) {
     removeOverlay();
 
+    chrome.storage.local.get(['firstName'], function(stored) {
+      buildOverlay(data, stored.firstName || null);
+    });
+  }
+
+  function buildOverlay(data, firstName) {
     const isDanger = data.level === 'danger';
     const iconUrl = chrome.runtime.getURL('icons/fish-no-symbol-red.png');
     const logoUrl = chrome.runtime.getURL('icons/logo.png');
+    const dangerMsg = firstName
+      ? escapeHtml(firstName) + ', this site is actively trying to steal your passwords, financial information, and personal data. Do not type anything. Leave now.'
+      : 'This site is actively trying to steal your passwords, financial information, and personal data. Do not type anything. Leave now.';
 
     overlayEl = document.createElement('div');
     overlayEl.id = 'nofishing-overlay';
@@ -39,7 +48,7 @@
 
           <h1 class="nf-title">${isDanger ? 'PHISHING DETECTED' : 'SUSPICIOUS SITE'}</h1>
           <p class="nf-subtitle">${isDanger
-            ? 'This site is stealing passwords and personal data. Do not type anything. Leave now.'
+            ? dangerMsg
             : 'This site shows signs of being potentially unsafe. Proceed with caution.'
           }</p>
 
