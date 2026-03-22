@@ -461,6 +461,112 @@ body {
 }
 
 .hidden { display: none !important; }
+
+/* ── VIEW 0: Plan Selection ── */
+.plan-body {
+  padding: 24px 20px;
+  text-align: center;
+  background: #111111;
+  color: #ffffff;
+}
+
+.plan-logo {
+  width: 120px;
+  height: auto;
+  display: block;
+  margin: 0 auto 20px;
+}
+
+.plan-title {
+  font-size: 20px;
+  font-weight: 900;
+  color: #ffffff;
+  margin-bottom: 6px;
+}
+
+.plan-sub {
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 24px;
+}
+
+.plan-cards {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.plan-card {
+  flex: 1;
+  background: #1a1a1a;
+  border: 2px solid #333;
+  border-radius: 12px;
+  padding: 20px 14px;
+  text-align: center;
+  position: relative;
+}
+
+.plan-card-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+
+.plan-card-price {
+  font-size: 28px;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.plan-card-price sup {
+  font-size: 14px;
+  vertical-align: top;
+  font-weight: 700;
+}
+
+.plan-card-period {
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 14px;
+}
+
+.plan-card-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  background: #EC220C;
+  color: #ffffff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.plan-card-btn {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  background: #EC220C;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.plan-card-btn:hover { opacity: 0.9; }
+
+.plan-footer {
+  font-size: 10px;
+  color: rgba(255,255,255,0.3);
+}
 </style>
 </head>
 <body>
@@ -473,7 +579,33 @@ body {
 <!-- ══════════════════════════════════════════ -->
 <!-- VIEW 1: Welcome + Signup (Step 2)         -->
 <!-- ══════════════════════════════════════════ -->
-<div id="view-welcome" class="view active">
+<div id="view-plan" class="view active">
+  <div class="plan-body">
+    <img src="icons/logo.png" alt="NøFishing AI" class="plan-logo"/>
+    <div class="plan-title">Choose Your Plan</div>
+    <p class="plan-sub">AI-powered phishing protection</p>
+
+    <div class="plan-cards">
+      <div class="plan-card">
+        <div class="plan-card-label">Monthly</div>
+        <div class="plan-card-price"><sup>$</sup>4.99</div>
+        <div class="plan-card-period">/month</div>
+        <button class="plan-card-btn" id="btn-plan-monthly">Select</button>
+      </div>
+      <div class="plan-card">
+        <div class="plan-card-label">Yearly</div>
+        <div class="plan-card-price"><sup>$</sup>49.99</div>
+        <div class="plan-card-period">/year — save 17%</div>
+        <span class="plan-card-badge">Best Value</span>
+        <button class="plan-card-btn" id="btn-plan-yearly">Select</button>
+      </div>
+    </div>
+
+    <div class="plan-footer">Cancel anytime. No hidden fees.</div>
+  </div>
+</div>
+
+<div id="view-welcome" class="view">
   <div class="welcome-body">
     <img src="icons/fish-bubbles-white.png" alt="NøFishing AI" class="welcome-fish"/>
     <div class="welcome-title">WELCOME ABOARD!</div>

@@ -9,6 +9,20 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById(id).classList.add('active');
   }
 
+  // ── Plan selection buttons ──
+
+  document.getElementById('btn-plan-monthly').addEventListener('click', () => {
+    chrome.storage.local.set({ selectedPlan: 'monthly' }, () => {
+      showView('view-welcome');
+    });
+  });
+
+  document.getElementById('btn-plan-yearly').addEventListener('click', () => {
+    chrome.storage.local.set({ selectedPlan: 'yearly' }, () => {
+      showView('view-welcome');
+    });
+  });
+
   // ── Navigation buttons ──
 
   // Welcome → Login
@@ -62,8 +76,11 @@ document.addEventListener('DOMContentLoaded', () => {
   let paymentEmail = '';
 
   function openPaymentTab() {
-    const url = 'https://nofishing.ai/payment?email=' + encodeURIComponent(paymentEmail) + '&plan=select';
-    chrome.tabs.create({ url: url });
+    chrome.storage.local.get(['selectedPlan'], (data) => {
+      const plan = data.selectedPlan || 'monthly';
+      const url = 'https://nofishing.ai/payment?email=' + encodeURIComponent(paymentEmail) + '&plan=' + plan;
+      chrome.tabs.create({ url: url });
+    });
   }
 
   // "Open Payment Page" button on waiting screen
@@ -117,6 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Save user to storage — activated: false (payment not done yet)
     chrome.storage.local.set({
       user: { firstName: first, lastName: last, email: email },
+      firstName: first,
       activated: false,
     }, () => {
       // Store email for payment URL
@@ -281,14 +299,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   chrome.storage.local.get(['user', 'activated'], (data) => {
     if (data.activated === true) {
-      // Step 5 — fully activated, show protection status
+      // Fully activated — show protection status
       loadActiveView();
     } else if (data.user && data.activated === false) {
       // Account exists but payment not done — show waiting screen
       paymentEmail = data.user.email || '';
       showView('view-waiting');
     }
-    // Otherwise: no user — view-welcome is already showing (has .active class in HTML)
+    // Otherwise: no user — view-plan is already showing (has .active class in HTML)
   });
 
 });
