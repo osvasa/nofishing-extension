@@ -492,13 +492,21 @@ body {
 
 .plan-cards {
   display: flex;
+  flex-direction: row;
+  width: 100%;
   gap: 12px;
   margin-bottom: 16px;
 }
 
+.plan-cards > .plan-card,
+.plan-cards > .plan-card-wrap {
+  width: 50% !important;
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
 .plan-card {
-  flex: 1;
-  min-width: 0;
   background: #1a1a1a;
   border: 2px solid #333;
   border-radius: 12px;
@@ -543,8 +551,8 @@ body {
 }
 
 .plan-card-wrap .plan-card {
-  flex: none;
-  width: 100%;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 .plan-card-badge {
