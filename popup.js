@@ -274,27 +274,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ── Test overlay button ──
-  document.getElementById('test-overlay-btn').addEventListener('click', () => {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs[0]) {
-        chrome.tabs.sendMessage(tabs[0].id, {
-          action: 'showOverlay',
-          level: 'danger',
-          url: tabs[0].url || 'https://example-phishing.com/login',
-          score: 92,
-          reasons: [
-            'Domain registered 2 days ago',
-            'SSL certificate mismatch',
-            'URL mimics known brand',
-            'Suspicious redirect chain detected'
-          ]
-        });
-        window.close();
-      }
-    });
-  });
-
   // ── Initial load: decide which view to show ──
 
   chrome.storage.local.get(['user', 'activated'], (data) => {

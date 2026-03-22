@@ -535,15 +535,28 @@ body {
   margin-bottom: 14px;
 }
 
+.plan-card-wrap {
+  flex: 1;
+  position: relative;
+}
+
+.plan-card-wrap .plan-card {
+  flex: auto;
+}
+
 .plan-card-badge {
-  display: inline-block;
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
   font-size: 10px;
   font-weight: 700;
   background: #EC220C;
   color: #ffffff;
   padding: 2px 8px;
   border-radius: 4px;
-  margin-bottom: 10px;
+  z-index: 1;
+  white-space: nowrap;
 }
 
 .plan-card-btn {
@@ -573,7 +586,7 @@ body {
 
 <!-- ── Header (always visible) ── -->
 <div class="popup-header">
-  <span class="popup-header-text">N&Oslash;FISHING AI</span>
+  <img src="icons/fish-bubbles-white.png" alt="NøFishing AI" style="height:40px;width:auto;display:block;"/>
 </div>
 
 <!-- ══════════════════════════════════════════ -->
@@ -592,12 +605,14 @@ body {
         <div class="plan-card-period">/month</div>
         <button class="plan-card-btn" id="btn-plan-monthly">Select</button>
       </div>
-      <div class="plan-card">
-        <div class="plan-card-label">Yearly</div>
-        <div class="plan-card-price"><sup>$</sup>49.99</div>
-        <div class="plan-card-period">/year — save 17%</div>
+      <div class="plan-card-wrap">
         <span class="plan-card-badge">Best Value</span>
-        <button class="plan-card-btn" id="btn-plan-yearly">Select</button>
+        <div class="plan-card">
+          <div class="plan-card-label">Yearly</div>
+          <div class="plan-card-price"><sup>$</sup>49.99</div>
+          <div class="plan-card-period">/year — save 17%</div>
+          <button class="plan-card-btn" id="btn-plan-yearly">Select</button>
+        </div>
       </div>
     </div>
 
@@ -728,8 +743,8 @@ body {
   </div>
 </div>
 
-<div style="text-align:center;padding:8px 0 10px;">
-  <button id="test-overlay-btn" style="background:#999;color:#fff;border:none;border-radius:6px;padding:6px 14px;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;cursor:pointer;opacity:0.6;transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">Test Overlay</button>
+<div style="text-align:center;padding:8px 0 10px;background:#ffffff;">
+  <img src="icons/fish-bubbles-white.png" alt="NøFishing AI" style="height:40px;width:auto;display:block;margin:0 auto;"/>
 </div>
 <script src="popup.js"></script>
 </body>
