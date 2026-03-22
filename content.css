@@ -53,10 +53,10 @@
 /* Inner card */
 .nf-overlay-inner {
   width: 100%;
-  max-width: 520px;
+  max-width: 600px;
   background: #111111;
   border-radius: 20px;
-  padding: 48px 40px;
+  padding: 48px 56px;
   text-align: center;
   color: #ffffff;
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
@@ -64,14 +64,15 @@
 
 /* Icon ring */
 .nf-icon-ring {
-  width: 150px;
-  height: 150px;
+  width: 180px;
+  height: 180px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto 24px;
-  background: none;
-  border: none;
+  background: none !important;
+  border: none !important;
+  border-radius: 0;
 }
 
 .nf-danger .nf-icon-ring {
@@ -79,14 +80,16 @@
 }
 
 .nf-warning .nf-icon-ring {
-  background: rgba(245, 158, 11, 0.15);
-  border: 2px solid rgba(245, 158, 11, 0.4);
+  background: none !important;
+  border: none !important;
 }
 
 .nf-shield-icon {
-  width: 150px;
-  height: 150px;
+  width: 180px;
+  height: 180px;
   object-fit: contain;
+  background: none !important;
+  border: none !important;
 }
 
 /* Title */
