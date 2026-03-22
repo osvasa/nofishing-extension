@@ -20,8 +20,8 @@ body {
 /* ── Header ── */
 .popup-header {
   width: 100%;
-  height: 60px;
-  background: #111111;
+  height: 70px;
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -589,7 +589,7 @@ body {
 
 <!-- ── Header (always visible) ── -->
 <div class="popup-header">
-  <img src="icons/fish-bubbles-white.png" alt="NøFishing AI" style="height:40px;width:auto;display:block;"/>
+  <img src="icons/fish-bubbles-white.png" alt="NøFishing AI" style="height:50px;width:auto;display:block;"/>
 </div>
 
 <!-- ══════════════════════════════════════════ -->
@@ -597,19 +597,20 @@ body {
 <!-- ══════════════════════════════════════════ -->
 <div id="view-plan" class="view active">
   <div class="plan-body">
-      <div class="plan-title">Choose Your Plan</div>
+    <img src="icons/logo.png" alt="NøFishing AI" class="plan-logo"/>
+    <div class="plan-title">Choose Your Plan</div>
     <p class="plan-sub">AI-powered phishing protection</p>
 
     <div class="plan-cards">
-      <div class="plan-card" style="width:50%;box-sizing:border-box;">
+      <div class="plan-card">
         <div class="plan-card-label">Monthly</div>
         <div class="plan-card-price"><sup>$</sup>4.99</div>
         <div class="plan-card-period">/month</div>
         <button class="plan-card-btn" id="btn-plan-monthly">Select</button>
       </div>
-      <div class="plan-card-wrap" style="width:50%;box-sizing:border-box;">
+      <div class="plan-card-wrap">
         <span class="plan-card-badge">Best Value</span>
-        <div class="plan-card" style="width:100%;box-sizing:border-box;">
+        <div class="plan-card">
           <div class="plan-card-label">Yearly</div>
           <div class="plan-card-price"><sup>$</sup>49.99</div>
           <div class="plan-card-period">/year — save 17%</div>
