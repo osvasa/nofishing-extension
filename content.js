@@ -27,47 +27,55 @@
 
     overlayEl.innerHTML = `
       <div class="nf-overlay-inner">
-        <img src="${logoUrl}" alt="NøFishing AI" class="nf-logo" />
-        <div class="nf-divider"></div>
-        <div class="nf-icon-ring">
-          <img src="${iconUrl}" alt="Warning" class="nf-shield-icon" />
+        <div class="nf-card-header">
+          <img src="${logoUrl}" alt="NøFishing AI" class="nf-logo" />
+          <div class="nf-divider"></div>
         </div>
 
-        <h1 class="nf-title">${isDanger ? 'PHISHING DETECTED' : 'SUSPICIOUS SITE'}</h1>
-        <p class="nf-subtitle">${isDanger
-          ? 'WARNING. This site is actively trying to steal your passwords, financial information, and personal data. Do not type anything. Leave immediately.'
-          : 'This site shows signs of being potentially unsafe. Proceed with caution.'
-        }</p>
-
-        <div class="nf-url-box">
-          <span class="nf-url-label">Flagged URL</span>
-          <span class="nf-url-value">${escapeHtml(truncateUrl(data.url || window.location.href, 80))}</span>
-        </div>
-
-        <div class="nf-score-bar">
-          <span class="nf-score-label">Threat Score</span>
-          <div class="nf-score-track">
-            <div class="nf-score-fill" style="width: ${Math.min(data.score, 100)}%"></div>
+        <div class="nf-card-body">
+          <div class="nf-icon-ring">
+            <img src="${iconUrl}" alt="Warning" class="nf-shield-icon" />
           </div>
-          <span class="nf-score-value">${data.score}/100</span>
-        </div>
 
-        ${reasonsList ? `
-          <div class="nf-reasons">
-            <span class="nf-reasons-label">Why this was flagged</span>
-            <ul class="nf-reasons-list">${reasonsList}</ul>
+          <h1 class="nf-title">${isDanger ? 'PHISHING DETECTED' : 'SUSPICIOUS SITE'}</h1>
+          <p class="nf-subtitle">${isDanger
+            ? 'WARNING. This site is actively trying to steal your passwords, financial information, and personal data. Do not type anything. Leave immediately.'
+            : 'This site shows signs of being potentially unsafe. Proceed with caution.'
+          }</p>
+
+          <div class="nf-url-box">
+            <span class="nf-url-label">Flagged URL</span>
+            <span class="nf-url-value">${escapeHtml(truncateUrl(data.url || window.location.href, 80))}</span>
           </div>
-        ` : ''}
 
-        <div class="nf-actions">
-          ${isDanger
-            ? '<button class="nf-btn nf-btn-close">CLOSE THIS SITE</button>'
-            : `<button class="nf-btn nf-btn-close">LEAVE THIS SITE</button>
-               <button class="nf-btn nf-btn-proceed">I understand the risk — proceed</button>`
-          }
+          <div class="nf-score-bar">
+            <span class="nf-score-label">Threat Score</span>
+            <div class="nf-score-track">
+              <div class="nf-score-fill" style="width: ${Math.min(data.score, 100)}%"></div>
+            </div>
+            <span class="nf-score-value">${data.score}/100</span>
+          </div>
+
+          ${reasonsList ? `
+            <div class="nf-reasons">
+              <span class="nf-reasons-label">Why this was flagged</span>
+              <ul class="nf-reasons-list">${reasonsList}</ul>
+            </div>
+          ` : ''}
+
+          <div class="nf-branding">Protected by NøFishing AI</div>
         </div>
 
-        <div class="nf-branding">Protected by NøFishing AI</div>
+        <div class="nf-card-footer">
+          <div class="nf-divider" style="margin-bottom:16px"></div>
+          <div class="nf-actions">
+            ${isDanger
+              ? '<button class="nf-btn nf-btn-close">CLOSE THIS SITE</button>'
+              : `<button class="nf-btn nf-btn-close">LEAVE THIS SITE</button>
+                 <button class="nf-btn nf-btn-proceed">I understand the risk — proceed</button>`
+            }
+          </div>
+        </div>
       </div>
     `;
 
