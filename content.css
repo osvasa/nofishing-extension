@@ -53,10 +53,12 @@
 /* Inner card */
 .nf-overlay-inner {
   width: 100%;
-  max-width: 700px;
+  max-width: 480px;
+  max-height: 80vh;
+  overflow-y: auto;
   background: #111111;
-  border-radius: 20px;
-  padding: 32px 64px 36px;
+  border-radius: 16px;
+  padding: 32px 36px;
   text-align: center;
   color: #ffffff;
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
