@@ -20,7 +20,7 @@ body {
 /* ── Header ── */
 .popup-header {
   width: 100%;
-  height: 48px;
+  height: 60px;
   background: #111111;
   display: flex;
   align-items: center;
@@ -498,6 +498,7 @@ body {
 
 .plan-card {
   flex: 1;
+  min-width: 0;
   background: #1a1a1a;
   border: 2px solid #333;
   border-radius: 12px;
@@ -538,10 +539,12 @@ body {
 .plan-card-wrap {
   flex: 1;
   position: relative;
+  min-width: 0;
 }
 
 .plan-card-wrap .plan-card {
-  flex: auto;
+  flex: none;
+  width: 100%;
 }
 
 .plan-card-badge {
@@ -594,8 +597,7 @@ body {
 <!-- ══════════════════════════════════════════ -->
 <div id="view-plan" class="view active">
   <div class="plan-body">
-    <img src="icons/logo.png" alt="NøFishing AI" class="plan-logo"/>
-    <div class="plan-title">Choose Your Plan</div>
+      <div class="plan-title">Choose Your Plan</div>
     <p class="plan-sub">AI-powered phishing protection</p>
 
     <div class="plan-cards">
@@ -743,9 +745,6 @@ body {
   </div>
 </div>
 
-<div style="text-align:center;padding:8px 0 10px;background:#ffffff;">
-  <img src="icons/fish-bubbles-white.png" alt="NøFishing AI" style="height:40px;width:auto;display:block;margin:0 auto;"/>
-</div>
 <script src="popup.js"></script>
 </body>
 </html>
