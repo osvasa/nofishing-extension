@@ -15,6 +15,7 @@
 
     const isDanger = data.level === 'danger';
     const iconUrl = chrome.runtime.getURL('icons/fish-no-symbol-red.png');
+    const logoUrl = chrome.runtime.getURL('icons/logo.png');
 
     overlayEl = document.createElement('div');
     overlayEl.id = 'nofishing-overlay';
@@ -26,8 +27,10 @@
 
     overlayEl.innerHTML = `
       <div class="nf-overlay-inner">
+        <img src="${logoUrl}" alt="NøFishing AI" class="nf-logo" />
+        <div class="nf-divider"></div>
         <div class="nf-icon-ring">
-          <img src="${iconUrl}" alt="NøFishing AI" class="nf-shield-icon" />
+          <img src="${iconUrl}" alt="Warning" class="nf-shield-icon" />
         </div>
 
         <h1 class="nf-title">${isDanger ? 'PHISHING DETECTED' : 'SUSPICIOUS SITE'}</h1>
