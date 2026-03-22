@@ -498,8 +498,7 @@ body {
   margin-bottom: 16px;
 }
 
-.plan-cards > .plan-card,
-.plan-cards > .plan-card-wrap {
+.plan-cards > .plan-card {
   width: 50% !important;
   flex: 1 1 0 !important;
   min-width: 0 !important;
@@ -544,20 +543,9 @@ body {
   margin-bottom: 14px;
 }
 
-.plan-card-wrap {
-  flex: 1;
-  position: relative;
-  min-width: 0;
-}
-
-.plan-card-wrap .plan-card {
-  width: 100% !important;
-  box-sizing: border-box !important;
-}
-
 .plan-card-badge {
   position: absolute;
-  top: -10px;
+  top: -12px;
   left: 50%;
   transform: translateX(-50%);
   font-size: 10px;
@@ -616,14 +604,12 @@ body {
         <div class="plan-card-period">/month</div>
         <button class="plan-card-btn" id="btn-plan-monthly">Select</button>
       </div>
-      <div class="plan-card-wrap">
+      <div class="plan-card">
         <span class="plan-card-badge">Best Value</span>
-        <div class="plan-card">
-          <div class="plan-card-label">Yearly</div>
-          <div class="plan-card-price"><sup>$</sup>49.99</div>
-          <div class="plan-card-period">/year — save 17%</div>
-          <button class="plan-card-btn" id="btn-plan-yearly">Select</button>
-        </div>
+        <div class="plan-card-label">Yearly</div>
+        <div class="plan-card-price"><sup>$</sup>49.99</div>
+        <div class="plan-card-period">/year — save 17%</div>
+        <button class="plan-card-btn" id="btn-plan-yearly">Select</button>
       </div>
     </div>
 
