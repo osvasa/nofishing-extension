@@ -87,7 +87,8 @@
 .nf-shield-icon {
   width: 180px;
   height: 180px;
-  object-fit: contain;
+  object-fit: cover;
+  border-radius: 50%;
   background: none !important;
   border: none !important;
 }
