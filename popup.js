@@ -3,9 +3,14 @@
 const SUPABASE_URL = 'https://pbdlyfdcrqeddqixbqoy.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_rezQfX2x_cmLfB7iFu6vJg_BRJAPrjp';
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let supabase = null;
 
 document.addEventListener('DOMContentLoaded', () => {
+
+  // Initialize Supabase (CDN may not be loaded yet in some cases)
+  if (window.supabase && window.supabase.createClient) {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  }
 
   // ── View switching ──
 
@@ -16,17 +21,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Plan selection buttons ──
 
-  document.getElementById('btn-plan-monthly').addEventListener('click', () => {
-    chrome.storage.local.set({ selectedPlan: 'monthly' }, () => {
-      showView('view-welcome');
-    });
-  });
+  const btnMonthly = document.getElementById('btn-plan-monthly');
+  const btnYearly = document.getElementById('btn-plan-yearly');
 
-  document.getElementById('btn-plan-yearly').addEventListener('click', () => {
-    chrome.storage.local.set({ selectedPlan: 'yearly' }, () => {
-      showView('view-welcome');
+  function selectPlan(plan) {
+    if (plan === 'monthly') {
+      btnMonthly.classList.add('selected');
+      btnYearly.classList.remove('selected');
+    } else {
+      btnYearly.classList.add('selected');
+      btnMonthly.classList.remove('selected');
+    }
+    chrome.storage.local.set({ selectedPlan: plan }, () => {
+      setTimeout(() => showView('view-welcome'), 150);
     });
-  });
+  }
+
+  btnMonthly.addEventListener('click', () => selectPlan('monthly'));
+  btnYearly.addEventListener('click', () => selectPlan('yearly'));
 
   // ── Navigation buttons ──
 
@@ -132,6 +144,13 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.disabled = true;
     btn.textContent = 'Creating account...';
 
+    if (!supabase) {
+      showFieldError('s-email', 'err-s-email', 'Service unavailable. Please try again.');
+      btn.disabled = false;
+      btn.textContent = 'Sign up';
+      return;
+    }
+
     try {
       // Sign up with Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -212,6 +231,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const btn = document.getElementById('btn-login-submit');
     btn.disabled = true;
     btn.textContent = 'Logging in...';
+
+    if (!supabase) {
+      const banner = document.getElementById('login-error-banner');
+      banner.textContent = 'Service unavailable. Please try again.';
+      banner.classList.add('show');
+      btn.disabled = false;
+      btn.textContent = 'Log in';
+      return;
+    }
 
     try {
       // Sign in with Supabase Auth
@@ -336,6 +364,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── Initial load: check Supabase session ──
 
   async function initPopup() {
+    if (!supabase) {
+      // Fallback to chrome.storage if Supabase not available
+      chrome.storage.local.get(['user', 'activated'], (data) => {
+        if (data.activated === true) {
+          loadActiveView();
+        } else if (data.user && data.activated === false) {
+          paymentEmail = data.user.email || '';
+          showView('view-waiting');
+        }
+      });
+      return;
+    }
+
     try {
       const { data: { session } } = await supabase.auth.getSession();
 
