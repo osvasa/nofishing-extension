@@ -1,5 +1,10 @@
 // ── NøFishing AI — Popup Script ──
 
+const SUPABASE_URL = 'https://pbdlyfdcrqeddqixbqoy.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_rezQfX2x_cmLfB7iFu6vJg_BRJAPrjp';
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 document.addEventListener('DOMContentLoaded', () => {
 
   // ── View switching ──
@@ -25,10 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Navigation buttons ──
 
-  // Welcome → Login
   document.getElementById('btn-go-login').addEventListener('click', () => showView('view-login'));
-
-  // Login → Welcome/Signup
   document.getElementById('btn-go-signup').addEventListener('click', () => showView('view-welcome'));
 
   // ── Helpers ──
@@ -88,9 +90,9 @@ document.addEventListener('DOMContentLoaded', () => {
     openPaymentTab();
   });
 
-  // ── Signup form (Step 2 → Step 3) ──
+  // ── Signup form ──
 
-  document.getElementById('signup-form').addEventListener('submit', (e) => {
+  document.getElementById('signup-form').addEventListener('submit', async (e) => {
     e.preventDefault();
 
     // Clear all errors
@@ -126,35 +128,66 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!valid) return;
 
-    // Disable button
     const btn = document.getElementById('btn-signup-submit');
     btn.disabled = true;
     btn.textContent = 'Creating account...';
 
-    // Save user to storage — activated: false (payment not done yet)
-    chrome.storage.local.set({
-      user: { firstName: first, lastName: last, email: email },
-      firstName: first,
-      activated: false,
-    }, () => {
-      // Store email for payment URL
-      paymentEmail = email;
+    try {
+      // Sign up with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: email,
+        password: password,
+      });
+
+      if (authError) {
+        btn.disabled = false;
+        btn.textContent = 'Sign up';
+        showFieldError('s-email', 'err-s-email', authError.message);
+        return;
+      }
+
+      // Get selected plan from storage
+      const storageData = await new Promise((resolve) => {
+        chrome.storage.local.get(['selectedPlan'], resolve);
+      });
+      const selectedPlan = storageData.selectedPlan || 'monthly';
+
+      // Insert profile into profiles table
+      await supabase.from('profiles').insert({
+        id: authData.user.id,
+        first_name: first,
+        last_name: last,
+        email: email,
+        plan: selectedPlan,
+        activated: false,
+      });
+
+      // Store in chrome.storage.local
+      chrome.storage.local.set({
+        user: { firstName: first, lastName: last, email: email },
+        firstName: first,
+        selectedPlan: selectedPlan,
+        activated: false,
+      });
 
       // Open payment tab
+      paymentEmail = email;
       openPaymentTab();
 
       // Show waiting view
       showView('view-waiting');
 
-      // Reset button
-      btn.disabled = false;
-      btn.textContent = 'Sign up';
-    });
+    } catch (err) {
+      showFieldError('s-email', 'err-s-email', 'Something went wrong. Please try again.');
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Sign up';
   });
 
-  // ── Login form (Step 6) ──
+  // ── Login form ──
 
-  document.getElementById('login-form').addEventListener('submit', (e) => {
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
 
     ['l-email', 'l-password'].forEach((id) => clearFieldError(id, 'err-' + id));
@@ -180,33 +213,59 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.disabled = true;
     btn.textContent = 'Logging in...';
 
-    // Check if user exists in storage
-    chrome.storage.local.get(['user', 'activated'], (data) => {
-      if (!data.user || data.user.email !== email) {
-        // No account found
+    try {
+      // Sign in with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+      });
+
+      if (authError) {
         btn.disabled = false;
         btn.textContent = 'Log in';
         const banner = document.getElementById('login-error-banner');
-        banner.textContent = 'No account found with this email. Please sign up first.';
+        banner.textContent = authError.message;
         banner.classList.add('show');
         return;
       }
 
-      if (data.activated === true) {
-        // Already activated — go straight to protection status
-        loadActiveView();
+      // Check profiles table for activated status
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('first_name, activated, plan')
+        .eq('id', authData.user.id)
+        .single();
+
+      if (profile) {
+        chrome.storage.local.set({
+          user: { firstName: profile.first_name, email: email },
+          firstName: profile.first_name,
+          selectedPlan: profile.plan || 'monthly',
+          activated: profile.activated || false,
+        });
+
+        if (profile.activated) {
+          loadActiveView();
+        } else {
+          paymentEmail = email;
+          showView('view-waiting');
+        }
       } else {
-        // Account exists but not paid — show waiting screen
         paymentEmail = email;
         showView('view-waiting');
       }
 
-      btn.disabled = false;
-      btn.textContent = 'Log in';
-    });
+    } catch (err) {
+      const banner = document.getElementById('login-error-banner');
+      banner.textContent = 'Something went wrong. Please try again.';
+      banner.classList.add('show');
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Log in';
   });
 
-  // ── Active view (Step 5) ──
+  // ── Active view ──
 
   function loadActiveView() {
     showView('view-active');
@@ -274,18 +333,53 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ── Initial load: decide which view to show ──
+  // ── Initial load: check Supabase session ──
 
-  chrome.storage.local.get(['user', 'activated'], (data) => {
-    if (data.activated === true) {
-      // Fully activated — show protection status
-      loadActiveView();
-    } else if (data.user && data.activated === false) {
-      // Account exists but payment not done — show waiting screen
-      paymentEmail = data.user.email || '';
-      showView('view-waiting');
+  async function initPopup() {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (session) {
+        // User is signed in — check profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('first_name, activated, plan, email')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profile) {
+          chrome.storage.local.set({
+            user: { firstName: profile.first_name, email: profile.email },
+            firstName: profile.first_name,
+            selectedPlan: profile.plan || 'monthly',
+            activated: profile.activated || false,
+          });
+
+          if (profile.activated) {
+            loadActiveView();
+          } else {
+            paymentEmail = profile.email || session.user.email;
+            showView('view-waiting');
+          }
+        } else {
+          paymentEmail = session.user.email;
+          showView('view-waiting');
+        }
+      }
+      // If no session: view-plan is already showing (has .active class in HTML)
+    } catch (err) {
+      // Fallback to chrome.storage if Supabase is unreachable
+      chrome.storage.local.get(['user', 'activated'], (data) => {
+        if (data.activated === true) {
+          loadActiveView();
+        } else if (data.user && data.activated === false) {
+          paymentEmail = data.user.email || '';
+          showView('view-waiting');
+        }
+      });
     }
-    // Otherwise: no user — view-plan is already showing (has .active class in HTML)
-  });
+  }
+
+  initPopup();
 
 });

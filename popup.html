@@ -579,6 +579,18 @@ body {
   font-size: 10px;
   color: rgba(255,255,255,0.3);
 }
+
+.plan-bottom-banner {
+  background: #111111;
+  text-align: center;
+  padding: 0 20px 12px;
+}
+
+.plan-bottom-fish {
+  width: 80px;
+  height: auto;
+  opacity: 0.35;
+}
 </style>
 </head>
 <body>
@@ -612,6 +624,9 @@ body {
     </div>
 
     <div class="plan-footer">Cancel anytime. No hidden fees.</div>
+  </div>
+  <div class="plan-bottom-banner">
+    <img src="icons/fish-panel-red.png" alt="" class="plan-bottom-fish"/>
   </div>
 </div>
 
@@ -738,6 +753,7 @@ body {
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="popup.js"></script>
 </body>
 </html>
