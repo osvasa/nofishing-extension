@@ -364,8 +364,8 @@ body {
 }
 
 .active-shield-circle {
-  width: 80px;
-  height: 80px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   background: #ffffff;
   display: flex;
@@ -443,10 +443,10 @@ body {
 }
 
 @keyframes swim {
-  0%    { left: 0; transform: scaleX(1); }
-  50%   { left: calc(100% - 60px); transform: scaleX(1); }
-  50.1% { left: calc(100% - 60px); transform: scaleX(-1); }
-  100%  { left: 0; transform: scaleX(-1); }
+  0%    { left: 0; transform: scaleX(-1); }
+  50%   { left: calc(100% - 60px); transform: scaleX(-1); }
+  50.1% { left: calc(100% - 60px); transform: scaleX(1); }
+  100%  { left: 0; transform: scaleX(1); }
 }
 
 .active-footer {
