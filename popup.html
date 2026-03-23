@@ -422,41 +422,31 @@ body {
 .active-msg {
   font-size: 12px;
   color: #ffffff;
-  font-style: italic;
   margin-bottom: 16px;
 }
 
 .guard-fish-container {
   width: 100%;
   height: 80px;
-  background: #1a1a1a;
-  border-radius: 12px;
+  background: #EC220C;
   overflow: hidden;
   position: relative;
-}
-
-.guard-fish-wrap {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  width: 100%;
-  height: 50px;
-  margin-top: -25px;
-  animation: swim 3s linear infinite;
 }
 
 .guard-fish-img {
   width: 50px;
   height: auto;
-  display: block;
+  position: absolute;
+  top: 50%;
+  margin-top: -25px;
+  animation: swim 3s linear infinite;
 }
 
 @keyframes swim {
-  0% { transform: translateX(0) scaleX(1); }
-  49% { transform: translateX(calc(100% - 60px)) scaleX(1); }
-  50% { transform: translateX(calc(100% - 60px)) scaleX(-1); }
-  99% { transform: translateX(0) scaleX(-1); }
-  100% { transform: translateX(0) scaleX(1); }
+  0%   { left: 0; transform: scaleX(1); }
+  49%  { left: calc(100% - 50px); transform: scaleX(1); }
+  50%  { left: calc(100% - 50px); transform: scaleX(-1); }
+  100% { left: 0; transform: scaleX(-1); }
 }
 
 .active-footer {
@@ -506,7 +496,7 @@ body {
 .settings-section-label {
   font-size: 10px;
   font-weight: 700;
-  color: rgba(255,255,255,0.35);
+  color: #EC220C;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin-bottom: 10px;
@@ -547,7 +537,7 @@ body {
   display: block;
   width: 100%;
   padding: 13px 16px;
-  background: transparent;
+  background: #111111;
   color: #EC220C;
   border: 2px solid #EC220C;
   border-radius: 8px;
@@ -889,7 +879,7 @@ body {
 <div id="view-active" class="view">
   <div class="active-header">
     <img src="icons/nofishing-ai-bubbles.gif" alt="NøFishing AI" class="active-header-logo"/>
-    <span class="active-header-title">NØFISHING AI</span>
+    <img src="icons/logo.png" alt="NøFishing AI" style="height:24px;width:auto;"/>
     <button class="active-header-gear" id="btn-open-settings">&#9881;</button>
   </div>
   <div class="active-body">
@@ -909,9 +899,7 @@ body {
     </div>
     <div class="active-msg">NøFishing AI is running silently, protecting you.</div>
     <div class="guard-fish-container">
-      <div class="guard-fish-wrap">
-        <img src="icons/nofishing-ai-bubbles.gif" alt="Guard fish" class="guard-fish-img"/>
-      </div>
+      <img src="icons/fish-bubbles-white.png" alt="Guard fish" class="guard-fish-img"/>
     </div>
     <div class="active-footer">NøFishing AI v1.0.0</div>
   </div>
@@ -923,7 +911,7 @@ body {
 <div id="view-settings" class="view">
   <div class="settings-header">
     <button class="settings-back" id="btn-settings-back">&#8592; Back</button>
-    <span class="settings-title">Settings</span>
+    <img src="icons/logo.png" alt="NøFishing AI" style="height:24px;width:auto;"/>
   </div>
   <div class="settings-body">
     <div class="settings-section-label">Account</div>
@@ -942,7 +930,7 @@ body {
     <div class="settings-card">
       <div class="settings-row">
         <span class="settings-row-label">Status</span>
-        <span class="settings-row-value status-active">Active &#10003;</span>
+        <span class="settings-row-value status-active"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#EC220C;margin-right:6px;vertical-align:middle;"></span>Active</span>
       </div>
     </div>
 
