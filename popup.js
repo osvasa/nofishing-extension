@@ -102,6 +102,14 @@ document.addEventListener('DOMContentLoaded', () => {
     openPaymentTab();
   });
 
+  // Reset button for testing
+  document.getElementById('btn-reset-test').addEventListener('click', async () => {
+    if (supabase) await supabase.auth.signOut();
+    chrome.storage.local.clear(() => {
+      showView('view-plan');
+    });
+  });
+
   // ── Signup form ──
 
   document.getElementById('signup-form').addEventListener('submit', async (e) => {
