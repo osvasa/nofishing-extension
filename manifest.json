@@ -39,7 +39,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["icons/fish-no-symbol-red.png", "icons/logo.png", "payment-success.html"],
+      "resources": ["icons/fish-no-symbol-red.png", "icons/logo.png", "payment-success.html", "supabase.js"],
       "matches": ["<all_urls>"]
     }
   ]
