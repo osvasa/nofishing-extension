@@ -121,6 +121,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Preview active screen for testing
+  document.getElementById('btn-preview-active').addEventListener('click', () => {
+    loadActiveView();
+  });
+
   // ── Signup form ──
 
   document.getElementById('signup-form').addEventListener('submit', async (e) => {
