@@ -159,62 +159,22 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.disabled = true;
     btn.textContent = 'Creating account...';
 
-    if (!sbClient) {
-      showFieldError('s-email', 'err-s-email', 'Service unavailable. Please try again.');
-      btn.disabled = false;
-      btn.textContent = 'Continue';
-      return;
-    }
+    // MOCK SIGNUP — Supabase disabled temporarily (rate limit)
+    const storageData = await new Promise((resolve) => {
+      chrome.storage.local.get(['selectedPlan'], resolve);
+    });
+    const selectedPlan = storageData.selectedPlan || 'monthly';
 
-    try {
-      // Sign up with Supabase Auth
-      const { data: authData, error: authError } = await sbClient.auth.signUp({
-        email: email,
-        password: password,
-      });
+    chrome.storage.local.set({
+      user: { firstName: first, lastName: last, email: email },
+      firstName: first,
+      selectedPlan: selectedPlan,
+      activated: false,
+    });
 
-      if (authError) {
-        console.log('Signup error:', JSON.stringify(authError));
-        btn.disabled = false;
-        btn.textContent = 'Continue';
-        showFieldError('s-email', 'err-s-email', authError.message);
-        return;
-      }
-
-      // Get selected plan from storage
-      const storageData = await new Promise((resolve) => {
-        chrome.storage.local.get(['selectedPlan'], resolve);
-      });
-      const selectedPlan = storageData.selectedPlan || 'monthly';
-
-      // Insert profile into profiles table
-      await sbClient.from('profiles').insert({
-        id: authData.user.id,
-        first_name: first,
-        last_name: last,
-        email: email,
-        plan: selectedPlan,
-        activated: false,
-      });
-
-      // Store in chrome.storage.local
-      chrome.storage.local.set({
-        user: { firstName: first, lastName: last, email: email },
-        firstName: first,
-        selectedPlan: selectedPlan,
-        activated: false,
-      });
-
-      // Open payment tab
-      paymentEmail = email;
-      openPaymentTab();
-
-      // Show waiting view
-      showView('view-waiting');
-
-    } catch (err) {
-      showFieldError('s-email', 'err-s-email', 'Something went wrong. Please try again.');
-    }
+    paymentEmail = email;
+    openPaymentTab();
+    showView('view-waiting');
 
     btn.disabled = false;
     btn.textContent = 'Continue';
