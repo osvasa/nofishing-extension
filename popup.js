@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (window.supabase && window.supabase.createClient) {
     supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   }
+  console.log('Supabase client:', supabase ? 'initialized' : 'FAILED');
 
   // ── View switching ──
 
@@ -167,6 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       if (authError) {
+        console.log('Signup error:', JSON.stringify(authError));
         btn.disabled = false;
         btn.textContent = 'Sign up';
         showFieldError('s-email', 'err-s-email', authError.message);
