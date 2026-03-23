@@ -33,12 +33,12 @@ document.addEventListener('DOMContentLoaded', () => {
   function selectPlan(plan) {
     if (plan === 'monthly') {
       btnMonthly.classList.add('selected');
-      btnMonthly.innerHTML = '<span style="color:#EC220C;font-weight:700;">✓</span> Monthly selected';
+      btnMonthly.innerHTML = '<span style="color:#EC220C;font-weight:700;">✓</span> Monthly';
       btnYearly.classList.remove('selected');
       btnYearly.textContent = 'Select';
     } else {
       btnYearly.classList.add('selected');
-      btnYearly.innerHTML = '<span style="color:#EC220C;font-weight:700;">✓</span> Yearly selected';
+      btnYearly.innerHTML = '<span style="color:#EC220C;font-weight:700;">✓</span> Yearly';
       btnMonthly.classList.remove('selected');
       btnMonthly.textContent = 'Select';
     }
