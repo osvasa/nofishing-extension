@@ -323,135 +323,115 @@ body {
 .btn-red:hover { opacity: 0.9; }
 
 /* ── VIEW 4: Active / Protection Status ── */
+.active-header {
+  width: 100%;
+  height: 50px;
+  background: #111111;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+}
+
+.active-header-logo {
+  height: 30px;
+  width: auto;
+}
+
+.active-header-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.06em;
+}
+
+.active-header-gear {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+
+.active-header-gear:hover { opacity: 0.7; }
+
 .active-body {
-  padding: 24px;
+  padding: 24px 20px;
   text-align: center;
   background: #ffffff;
 }
 
-.active-fish {
-  width: 80px;
-  height: auto;
-  display: block;
-  margin: 0 auto 16px;
-}
-
-.status-label {
-  font-size: 18px;
-  font-weight: 800;
-  margin-bottom: 6px;
-}
-
-.status-label.safe { color: #22C55E; }
-.status-label.warning { color: #F59E0B; }
-.status-label.danger { color: #EC220C; }
-
-.status-desc {
-  font-size: 12px;
-  color: #888888;
-  line-height: 1.5;
-  margin-bottom: 16px;
-}
-
-.site-url-box {
-  padding: 10px 14px;
-  background: #f5f5f5;
-  border: 1px solid #eeeeee;
-  border-radius: 8px;
-  font-size: 11px;
-  color: #888888;
-  font-family: 'SF Mono', 'Fira Code', monospace;
-  word-break: break-all;
-  line-height: 1.4;
-  margin-bottom: 12px;
-  text-align: left;
-}
-
-/* Score bar */
-.score-bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-
-.score-bar-label {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #bbbbbb;
-  white-space: nowrap;
-}
-
-.score-bar-track {
-  flex: 1;
-  height: 4px;
-  background: #eeeeee;
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.score-bar-fill {
-  height: 100%;
-  border-radius: 2px;
-  background: #22C55E;
-}
-
-.score-bar-fill.warn { background: #F59E0B; }
-.score-bar-fill.danger { background: #EC220C; }
-
-.score-bar-val {
-  font-size: 12px;
-  font-weight: 800;
-  color: #666666;
-  min-width: 36px;
-  text-align: right;
-}
-
-/* Reasons */
-.reasons-box {
-  padding: 12px 14px;
-  background: #f9f9f9;
-  border: 1px solid #eeeeee;
-  border-radius: 8px;
-  text-align: left;
-  margin-bottom: 12px;
-}
-
-.reasons-title {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #bbbbbb;
+.active-shield {
+  font-size: 48px;
   margin-bottom: 8px;
 }
 
-.reasons-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.active-status-text {
+  font-size: 22px;
+  font-weight: 900;
+  color: #22C55E;
+  margin-bottom: 16px;
 }
 
-.reasons-list li {
-  font-size: 11px;
-  color: #666666;
-  padding: 3px 0 3px 14px;
+.active-stats {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.active-stat-box {
+  flex: 1;
+  background: #1a1a1a;
+  border-radius: 10px;
+  padding: 16px 10px;
+  text-align: center;
+}
+
+.active-stat-num {
+  font-size: 28px;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.active-stat-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.active-msg {
+  font-size: 12px;
+  color: #999999;
+  margin-bottom: 16px;
+}
+
+.guard-fish-container {
+  width: 100%;
+  height: 80px;
+  background: #111111;
+  border-radius: 12px;
+  overflow: hidden;
   position: relative;
-  line-height: 1.4;
 }
 
-.reasons-list li::before {
-  content: '';
+.guard-fish-img {
+  height: 50px;
+  width: auto;
   position: absolute;
-  left: 0;
   top: 50%;
   transform: translateY(-50%);
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: #EC220C;
+  animation: swimRight 3s ease-in-out infinite alternate;
+}
+
+@keyframes swimRight {
+  0% { left: -10px; transform: translateY(-50%) scaleX(1); }
+  100% { left: calc(100% - 60px); transform: translateY(-50%) scaleX(-1); }
 }
 
 .active-footer {
@@ -459,6 +439,102 @@ body {
   font-size: 10px;
   color: #cccccc;
 }
+
+/* ── VIEW 5: Settings ── */
+.settings-header {
+  width: 100%;
+  height: 50px;
+  background: #111111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 0 16px;
+}
+
+.settings-back {
+  position: absolute;
+  left: 16px;
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.settings-back:hover { opacity: 0.7; }
+
+.settings-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.04em;
+}
+
+.settings-body {
+  padding: 20px;
+  background: #ffffff;
+}
+
+.settings-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #bbbbbb;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+}
+
+.settings-card {
+  background: #f5f5f5;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.settings-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+}
+
+.settings-row-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #666666;
+}
+
+.settings-row-value {
+  font-size: 12px;
+  color: #111111;
+  font-weight: 500;
+}
+
+.settings-row-value.active-status {
+  color: #EC220C;
+  font-weight: 700;
+}
+
+.settings-logout {
+  display: block;
+  width: 100%;
+  padding: 13px 16px;
+  background: #ffffff;
+  color: #EC220C;
+  border: 2px solid #EC220C;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  margin-top: 8px;
+}
+
+.settings-logout:hover { opacity: 0.8; }
 
 .hidden { display: none !important; }
 
@@ -784,21 +860,62 @@ body {
 <!-- VIEW 4: Active / Protection Status (Step 5) -->
 <!-- ══════════════════════════════════════════ -->
 <div id="view-active" class="view">
+  <div class="active-header">
+    <img src="icons/nofishing-ai-bubbles.gif" alt="NøFishing AI" class="active-header-logo"/>
+    <span class="active-header-title">NØFISHING AI</span>
+    <button class="active-header-gear" id="btn-open-settings">&#9881;</button>
+  </div>
   <div class="active-body">
-    <img src="icons/fish-no-symbol-red.png" alt="NøFishing AI" class="active-fish"/>
-    <div id="active-label" class="status-label safe">Site is Safe</div>
-    <div id="active-desc" class="status-desc">No threats detected on this page.</div>
-    <div id="active-url" class="site-url-box hidden"></div>
-    <div id="active-score" class="score-bar hidden">
-      <span class="score-bar-label">Threat</span>
-      <div class="score-bar-track"><div id="active-score-fill" class="score-bar-fill"></div></div>
-      <span id="active-score-val" class="score-bar-val">0</span>
+    <div class="active-shield" id="active-shield">&#9989;</div>
+    <div class="active-status-text" id="active-status-text">PROTECTED</div>
+    <div class="active-stats">
+      <div class="active-stat-box">
+        <div class="active-stat-num" id="stat-sites">0</div>
+        <div class="active-stat-label">Sites visited safely</div>
+      </div>
+      <div class="active-stat-box">
+        <div class="active-stat-num" id="stat-threats">0</div>
+        <div class="active-stat-label">Threats blocked</div>
+      </div>
     </div>
-    <div id="active-reasons" class="reasons-box hidden">
-      <div class="reasons-title">Detection details</div>
-      <ul id="active-reasons-list" class="reasons-list"></ul>
+    <div class="active-msg">NøFishing AI is running silently, protecting you.</div>
+    <div class="guard-fish-container">
+      <img src="icons/fish-bubbles-white.png" alt="Guard fish" class="guard-fish-img"/>
     </div>
     <div class="active-footer">NøFishing AI v1.0.0</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- VIEW 5: Settings                          -->
+<!-- ══════════════════════════════════════════ -->
+<div id="view-settings" class="view">
+  <div class="settings-header">
+    <button class="settings-back" id="btn-settings-back">&#8592; Back</button>
+    <span class="settings-title">Settings</span>
+  </div>
+  <div class="settings-body">
+    <div class="settings-section-label">Account</div>
+    <div class="settings-card">
+      <div class="settings-row">
+        <span class="settings-row-label">Email</span>
+        <span class="settings-row-value" id="settings-email">—</span>
+      </div>
+      <div class="settings-row">
+        <span class="settings-row-label">Plan</span>
+        <span class="settings-row-value" id="settings-plan">—</span>
+      </div>
+    </div>
+
+    <div class="settings-section-label">Protection</div>
+    <div class="settings-card">
+      <div class="settings-row">
+        <span class="settings-row-label">Status</span>
+        <span class="settings-row-value active-status">Active &#10003;</span>
+      </div>
+    </div>
+
+    <button class="settings-logout" id="btn-logout">Log Out</button>
   </div>
 </div>
 

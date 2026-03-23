@@ -90,6 +90,11 @@
 
     document.documentElement.appendChild(overlayEl);
 
+    // Track threats blocked
+    chrome.storage.local.get('threatsBlocked', (data) => {
+      chrome.storage.local.set({threatsBlocked: (data.threatsBlocked||0)+1});
+    });
+
     // Wire up buttons
     const closeBtn = overlayEl.querySelector('.nf-btn-close');
     if (closeBtn) {

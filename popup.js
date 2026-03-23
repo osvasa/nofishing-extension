@@ -278,68 +278,35 @@ document.addEventListener('DOMContentLoaded', () => {
   function loadActiveView() {
     showView('view-active');
 
-    chrome.runtime.sendMessage({ action: 'getStatus' }, (res) => {
-      if (chrome.runtime.lastError || !res) return;
-
-      const label = document.getElementById('active-label');
-      const desc = document.getElementById('active-desc');
-      const urlBox = document.getElementById('active-url');
-      const scoreBar = document.getElementById('active-score');
-      const scoreFill = document.getElementById('active-score-fill');
-      const scoreVal = document.getElementById('active-score-val');
-      const reasonsBox = document.getElementById('active-reasons');
-      const reasonsList = document.getElementById('active-reasons-list');
-
-      // URL
-      if (res.url) {
-        try {
-          const u = new URL(res.url);
-          if (u.protocol === 'http:' || u.protocol === 'https:') {
-            urlBox.textContent = u.hostname + u.pathname;
-            urlBox.classList.remove('hidden');
-          }
-        } catch { /* ignore */ }
-      }
-
-      // Status
-      if (res.level === 'danger') {
-        label.className = 'status-label danger';
-        label.textContent = 'Threat Detected';
-        desc.textContent = 'This site has been identified as dangerous. Leave immediately.';
-      } else if (res.level === 'warning') {
-        label.className = 'status-label warning';
-        label.textContent = 'Suspicious Site';
-        desc.textContent = 'This site shows potential signs of being unsafe.';
-      } else {
-        label.className = 'status-label safe';
-        label.textContent = 'Site is Safe';
-        desc.textContent = 'No threats detected on this page.';
-      }
-
-      // Score bar
-      if (res.score > 0) {
-        scoreBar.classList.remove('hidden');
-        scoreFill.style.width = Math.min(res.score, 100) + '%';
-        scoreVal.textContent = res.score + '/100';
-
-        if (res.score >= 60) {
-          scoreFill.className = 'score-bar-fill danger';
-        } else if (res.score >= 30) {
-          scoreFill.className = 'score-bar-fill warn';
-        } else {
-          scoreFill.className = 'score-bar-fill';
-        }
-      }
-
-      // Reasons
-      if (res.reasons && res.reasons.length > 0) {
-        reasonsBox.classList.remove('hidden');
-        reasonsList.innerHTML = res.reasons
-          .map((r) => '<li>' + escapeHtml(r) + '</li>')
-          .join('');
-      }
+    // Load stats from storage
+    chrome.storage.local.get(['sitesVisited', 'threatsBlocked'], (data) => {
+      document.getElementById('stat-sites').textContent = data.sitesVisited || 0;
+      document.getElementById('stat-threats').textContent = data.threatsBlocked || 0;
     });
   }
+
+  // ── Settings view ──
+
+  document.getElementById('btn-open-settings').addEventListener('click', () => {
+    // Populate settings with stored data
+    chrome.storage.local.get(['user', 'selectedPlan'], (data) => {
+      document.getElementById('settings-email').textContent = (data.user && data.user.email) || '—';
+      const plan = data.selectedPlan || 'monthly';
+      document.getElementById('settings-plan').textContent = plan === 'yearly' ? 'Yearly Protection' : 'Monthly Protection';
+    });
+    showView('view-settings');
+  });
+
+  document.getElementById('btn-settings-back').addEventListener('click', () => {
+    showView('view-active');
+  });
+
+  document.getElementById('btn-logout').addEventListener('click', async () => {
+    if (sbClient) await sbClient.auth.signOut();
+    chrome.storage.local.clear(() => {
+      showView('view-plan');
+    });
+  });
 
   // ── Initial load: check Supabase session ──
 
