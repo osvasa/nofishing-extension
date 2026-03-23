@@ -3,19 +3,19 @@
 const SUPABASE_URL = 'https://pbdlyfdcrqeddqixbqoy.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_rezQfX2x_cmLfB7iFu6vJg_BRJAPrjp';
 
-let supabase = null;
+let sbClient = null;
 
 document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize Supabase (CDN may not be loaded yet in some cases)
   if (window.supabase && window.supabase.createClient) {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   }
-  console.log('Supabase client:', supabase ? 'initialized' : 'FAILED');
+  console.log('Supabase client:', sbClient ? 'initialized' : 'FAILED');
 
   // ── TESTING: Force reset on every popup open ──
   chrome.storage.local.clear();
-  if (supabase) supabase.auth.signOut();
+  if (sbClient) sbClient.auth.signOut();
   console.log('TESTING: session cleared, starting from plan selection');
 
   // ── View switching ──
@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Reset button for testing
   document.getElementById('btn-reset-test').addEventListener('click', async () => {
-    if (supabase) await supabase.auth.signOut();
+    if (sbClient) await sbClient.auth.signOut();
     chrome.storage.local.clear(() => {
       showView('view-plan');
     });
@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.disabled = true;
     btn.textContent = 'Creating account...';
 
-    if (!supabase) {
+    if (!sbClient) {
       showFieldError('s-email', 'err-s-email', 'Service unavailable. Please try again.');
       btn.disabled = false;
       btn.textContent = 'Sign up';
@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       // Sign up with Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      const { data: authData, error: authError } = await sbClient.auth.signUp({
         email: email,
         password: password,
       });
@@ -187,7 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const selectedPlan = storageData.selectedPlan || 'monthly';
 
       // Insert profile into profiles table
-      await supabase.from('profiles').insert({
+      await sbClient.from('profiles').insert({
         id: authData.user.id,
         first_name: first,
         last_name: last,
@@ -247,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.disabled = true;
     btn.textContent = 'Logging in...';
 
-    if (!supabase) {
+    if (!sbClient) {
       const banner = document.getElementById('login-error-banner');
       banner.textContent = 'Service unavailable. Please try again.';
       banner.classList.add('show');
@@ -258,7 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       // Sign in with Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      const { data: authData, error: authError } = await sbClient.auth.signInWithPassword({
         email: email,
         password: password,
       });
@@ -273,7 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       // Check profiles table for activated status
-      const { data: profile } = await supabase
+      const { data: profile } = await sbClient
         .from('profiles')
         .select('first_name, activated, plan')
         .eq('id', authData.user.id)
@@ -379,7 +379,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── Initial load: check Supabase session ──
 
   async function initPopup() {
-    if (!supabase) {
+    if (!sbClient) {
       // Fallback to chrome.storage if Supabase not available
       chrome.storage.local.get(['user', 'activated'], (data) => {
         if (data.activated === true) {
@@ -393,11 +393,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await sbClient.auth.getSession();
 
       if (session) {
         // User is signed in — check profile
-        const { data: profile } = await supabase
+        const { data: profile } = await sbClient
           .from('profiles')
           .select('first_name, activated, plan, email')
           .eq('id', session.user.id)
