@@ -33,10 +33,14 @@ document.addEventListener('DOMContentLoaded', () => {
   function selectPlan(plan) {
     if (plan === 'monthly') {
       btnMonthly.classList.add('selected');
+      btnMonthly.innerHTML = '<span style="color:#EC220C;font-weight:700;">✓</span> Monthly selected';
       btnYearly.classList.remove('selected');
+      btnYearly.textContent = 'Select';
     } else {
       btnYearly.classList.add('selected');
+      btnYearly.innerHTML = '<span style="color:#EC220C;font-weight:700;">✓</span> Yearly selected';
       btnMonthly.classList.remove('selected');
+      btnMonthly.textContent = 'Select';
     }
     chrome.storage.local.set({ selectedPlan: plan }, () => {
       setTimeout(() => showView('view-welcome'), 150);
