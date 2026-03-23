@@ -360,19 +360,33 @@ body {
 .active-body {
   padding: 24px 20px;
   text-align: center;
-  background: #ffffff;
+  background: #111111;
 }
 
-.active-shield {
-  font-size: 48px;
-  margin-bottom: 8px;
+.active-shield-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #EC220C;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+}
+
+.active-shield-check {
+  font-size: 36px;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1;
 }
 
 .active-status-text {
   font-size: 22px;
   font-weight: 900;
-  color: #22C55E;
-  margin-bottom: 16px;
+  color: #ffffff;
+  letter-spacing: 3px;
+  margin-bottom: 20px;
 }
 
 .active-stats {
@@ -385,36 +399,38 @@ body {
   flex: 1;
   background: #1a1a1a;
   border-radius: 10px;
+  border-top: 3px solid #EC220C;
   padding: 16px 10px;
   text-align: center;
 }
 
 .active-stat-num {
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 900;
   color: #ffffff;
   line-height: 1;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .active-stat-label {
-  font-size: 10px;
-  font-weight: 600;
-  color: rgba(255,255,255,0.45);
+  font-size: 9px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.4);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
 }
 
 .active-msg {
   font-size: 12px;
-  color: #999999;
+  color: #888888;
+  font-style: italic;
   margin-bottom: 16px;
 }
 
 .guard-fish-container {
   width: 100%;
   height: 80px;
-  background: #111111;
+  background: #1a1a1a;
   border-radius: 12px;
   overflow: hidden;
   position: relative;
@@ -425,19 +441,37 @@ body {
   width: auto;
   position: absolute;
   top: 50%;
-  transform: translateY(-50%);
-  animation: swimRight 3s ease-in-out infinite alternate;
+  left: 0;
+  animation: swimGuard 6s ease-in-out infinite;
 }
 
-@keyframes swimRight {
-  0% { left: -10px; transform: translateY(-50%) scaleX(1); }
-  100% { left: calc(100% - 60px); transform: translateY(-50%) scaleX(-1); }
+@keyframes swimGuard {
+  0% {
+    left: -20px;
+    transform: translateY(-50%) scaleX(1);
+  }
+  45% {
+    left: calc(100% - 60px);
+    transform: translateY(-50%) scaleX(1);
+  }
+  50% {
+    left: calc(100% - 60px);
+    transform: translateY(-50%) scaleX(-1);
+  }
+  95% {
+    left: -20px;
+    transform: translateY(-50%) scaleX(-1);
+  }
+  100% {
+    left: -20px;
+    transform: translateY(-50%) scaleX(1);
+  }
 }
 
 .active-footer {
   margin-top: 16px;
   font-size: 10px;
-  color: #cccccc;
+  color: rgba(255,255,255,0.3);
 }
 
 /* ── VIEW 5: Settings ── */
@@ -475,20 +509,20 @@ body {
 
 .settings-body {
   padding: 20px;
-  background: #ffffff;
+  background: #111111;
 }
 
 .settings-section-label {
   font-size: 10px;
   font-weight: 700;
-  color: #bbbbbb;
+  color: rgba(255,255,255,0.35);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin-bottom: 10px;
 }
 
 .settings-card {
-  background: #f5f5f5;
+  background: #1a1a1a;
   border-radius: 10px;
   padding: 14px 16px;
   margin-bottom: 16px;
@@ -504,16 +538,16 @@ body {
 .settings-row-label {
   font-size: 12px;
   font-weight: 600;
-  color: #666666;
+  color: rgba(255,255,255,0.45);
 }
 
 .settings-row-value {
   font-size: 12px;
-  color: #111111;
+  color: #ffffff;
   font-weight: 500;
 }
 
-.settings-row-value.active-status {
+.settings-row-value.status-active {
   color: #EC220C;
   font-weight: 700;
 }
@@ -522,7 +556,7 @@ body {
   display: block;
   width: 100%;
   padding: 13px 16px;
-  background: #ffffff;
+  background: transparent;
   color: #EC220C;
   border: 2px solid #EC220C;
   border-radius: 8px;
@@ -868,21 +902,23 @@ body {
     <button class="active-header-gear" id="btn-open-settings">&#9881;</button>
   </div>
   <div class="active-body">
-    <div class="active-shield" id="active-shield">&#9989;</div>
-    <div class="active-status-text" id="active-status-text">PROTECTED</div>
+    <div class="active-shield-circle">
+      <span class="active-shield-check">&#10003;</span>
+    </div>
+    <div class="active-status-text">PROTECTED</div>
     <div class="active-stats">
       <div class="active-stat-box">
         <div class="active-stat-num" id="stat-sites">0</div>
-        <div class="active-stat-label">Sites visited safely</div>
+        <div class="active-stat-label">Sites Safe</div>
       </div>
       <div class="active-stat-box">
         <div class="active-stat-num" id="stat-threats">0</div>
-        <div class="active-stat-label">Threats blocked</div>
+        <div class="active-stat-label">Threats Blocked</div>
       </div>
     </div>
     <div class="active-msg">NøFishing AI is running silently, protecting you.</div>
     <div class="guard-fish-container">
-      <img src="icons/fish-bubbles-white.png" alt="Guard fish" class="guard-fish-img"/>
+      <img src="icons/nofishing-ai-bubbles.gif" alt="Guard fish" class="guard-fish-img"/>
     </div>
     <div class="active-footer">NøFishing AI v1.0.0</div>
   </div>
@@ -913,7 +949,7 @@ body {
     <div class="settings-card">
       <div class="settings-row">
         <span class="settings-row-label">Status</span>
-        <span class="settings-row-value active-status">Active &#10003;</span>
+        <span class="settings-row-value status-active">Active &#10003;</span>
       </div>
     </div>
 
