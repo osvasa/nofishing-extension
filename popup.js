@@ -43,7 +43,10 @@ document.addEventListener('DOMContentLoaded', () => {
       btnMonthly.textContent = 'Select';
     }
     chrome.storage.local.set({ selectedPlan: plan }, () => {
-      setTimeout(() => showView('view-welcome'), 150);
+      setTimeout(() => {
+        openPaymentTab();
+        showView('view-waiting');
+      }, 150);
     });
   }
 
@@ -53,7 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── Navigation buttons ──
 
   document.getElementById('btn-go-login').addEventListener('click', () => showView('view-login'));
-  document.getElementById('btn-back-plan').addEventListener('click', () => showView('view-plan'));
   document.getElementById('btn-go-signup').addEventListener('click', () => showView('view-welcome'));
 
   // ── Helpers ──
@@ -117,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-reset-test').addEventListener('click', async () => {
     if (sbClient) await sbClient.auth.signOut();
     chrome.storage.local.clear(() => {
-      showView('view-plan');
+      showView('view-welcome');
     });
   });
 
@@ -196,8 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     paymentEmail = email;
-    openPaymentTab();
-    showView('view-waiting');
+    showView('view-plan');
 
     btn.disabled = false;
     btn.textContent = 'Continue';
@@ -323,7 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-logout').addEventListener('click', async () => {
     if (sbClient) await sbClient.auth.signOut();
     chrome.storage.local.clear(() => {
-      showView('view-plan');
+      showView('view-welcome');
     });
   });
 
@@ -373,7 +374,7 @@ document.addEventListener('DOMContentLoaded', () => {
           showView('view-waiting');
         }
       }
-      // If no session: view-plan is already showing (has .active class in HTML)
+      // If no session: view-welcome is already showing (has .active class in HTML)
     } catch (err) {
       // Fallback to chrome.storage if Supabase is unreachable
       chrome.storage.local.get(['user', 'activated'], (data) => {
