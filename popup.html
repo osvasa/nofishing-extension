@@ -576,9 +576,45 @@ body {
 .plan-card-btn:hover { opacity: 0.9; }
 .plan-card-btn.selected { background: #ffffff; color: #111111; }
 
+.plan-benefits-card {
+  margin-top: 16px;
+  border: 2px solid #EC220C;
+  border-radius: 12px;
+  overflow: hidden;
+  text-align: left;
+}
+
+.plan-benefits-header {
+  background: #EC220C;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 10px 14px;
+  text-align: center;
+}
+
+.plan-benefits-body {
+  background: #111111;
+  padding: 14px;
+}
+
+.plan-benefit-item {
+  font-size: 11px;
+  color: rgba(255,255,255,0.8);
+  padding: 4px 0;
+  line-height: 1.5;
+}
+
+.plan-benefit-check {
+  color: #EC220C;
+  font-weight: 700;
+  margin-right: 6px;
+}
+
 .plan-footer {
   font-size: 10px;
   color: rgba(255,255,255,0.3);
+  margin-top: 16px;
 }
 
 .plan-bottom-banner {
@@ -621,6 +657,19 @@ body {
         <div class="plan-card-price"><sup>$</sup>49.99</div>
         <div class="plan-card-period">/year — save 17%</div>
         <button class="plan-card-btn" id="btn-plan-yearly">Select</button>
+      </div>
+    </div>
+
+    <div class="plan-benefits-card">
+      <div class="plan-benefits-header">This is how AI stops scammers.</div>
+      <div class="plan-benefits-body">
+        <div class="plan-benefit-item"><span class="plan-benefit-check">&#10003;</span> Analyzes every URL in real time, every single visit</div>
+        <div class="plan-benefit-item"><span class="plan-benefit-check">&#10003;</span> Catches threats before anyone has reported them</div>
+        <div class="plan-benefit-item"><span class="plan-benefit-check">&#10003;</span> Proactive — detects suspicious patterns instantly</div>
+        <div class="plan-benefit-item"><span class="plan-benefit-check">&#10003;</span> 14-point AI heuristic engine running silently 24/7</div>
+        <div class="plan-benefit-item"><span class="plan-benefit-check">&#10003;</span> Blocks brand new phishing domains from day one</div>
+        <div class="plan-benefit-item"><span class="plan-benefit-check">&#10003;</span> AI model updates continuously in the background</div>
+        <div class="plan-benefit-item"><span class="plan-benefit-check">&#10003;</span> Built specifically to protect YOU — not just tick a box</div>
       </div>
     </div>
 
@@ -669,13 +718,14 @@ body {
         </div>
         <div class="auth-checkbox-error" id="err-s-terms">You must agree to the terms</div>
 
-        <button type="submit" class="auth-btn" id="btn-signup-submit">Sign up</button>
+        <button type="submit" class="auth-btn" id="btn-signup-submit">Continue</button>
       </form>
 
       <div class="auth-switch">Already have an account? <button id="btn-go-login">Log in</button></div>
     </div>
 
     <div class="welcome-footer">AI-Powered Phishing Protection</div>
+    <button id="btn-back-plan" style="margin-top:12px;background:none;border:none;color:rgba(255,255,255,0.4);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;display:block;margin-left:auto;margin-right:auto;">&#8592; Back</button>
   </div>
 </div>
 

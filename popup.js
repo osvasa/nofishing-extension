@@ -49,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── Navigation buttons ──
 
   document.getElementById('btn-go-login').addEventListener('click', () => showView('view-login'));
+  document.getElementById('btn-back-plan').addEventListener('click', () => showView('view-plan'));
   document.getElementById('btn-go-signup').addEventListener('click', () => showView('view-welcome'));
 
   // ── Helpers ──
@@ -161,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!sbClient) {
       showFieldError('s-email', 'err-s-email', 'Service unavailable. Please try again.');
       btn.disabled = false;
-      btn.textContent = 'Sign up';
+      btn.textContent = 'Continue';
       return;
     }
 
@@ -175,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (authError) {
         console.log('Signup error:', JSON.stringify(authError));
         btn.disabled = false;
-        btn.textContent = 'Sign up';
+        btn.textContent = 'Continue';
         showFieldError('s-email', 'err-s-email', authError.message);
         return;
       }
@@ -216,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     btn.disabled = false;
-    btn.textContent = 'Sign up';
+    btn.textContent = 'Continue';
   });
 
   // ── Login form ──
