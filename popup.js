@@ -126,6 +126,20 @@ document.addEventListener('DOMContentLoaded', () => {
     loadActiveView();
   });
 
+  // Preview protected mode from login screen
+  document.getElementById('btn-preview-protected').addEventListener('click', () => {
+    chrome.storage.local.set({
+      activated: true,
+      firstName: 'Test',
+      selectedPlan: 'monthly',
+      user: { firstName: 'Test', email: 'test@example.com' },
+      sitesVisited: 247,
+      threatsBlocked: 3
+    }, () => {
+      loadActiveView();
+    });
+  });
+
   // ── Signup form ──
 
   document.getElementById('signup-form').addEventListener('submit', async (e) => {
