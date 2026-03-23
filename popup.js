@@ -13,6 +13,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   console.log('Supabase client:', supabase ? 'initialized' : 'FAILED');
 
+  // ── TESTING: Force reset on every popup open ──
+  chrome.storage.local.clear();
+  if (supabase) supabase.auth.signOut();
+  console.log('TESTING: session cleared, starting from plan selection');
+
   // ── View switching ──
 
   function showView(id) {
