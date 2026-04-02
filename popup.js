@@ -112,33 +112,6 @@ document.addEventListener('DOMContentLoaded', () => {
     openPaymentTab();
   });
 
-  // Reset button for testing
-  document.getElementById('btn-reset-test').addEventListener('click', async () => {
-    if (sbClient) await sbClient.auth.signOut();
-    chrome.storage.local.clear(() => {
-      showView('view-welcome');
-    });
-  });
-
-  // Preview active screen for testing
-  document.getElementById('btn-preview-active').addEventListener('click', () => {
-    loadActiveView();
-  });
-
-  // Preview protected mode from login screen
-  document.getElementById('btn-preview-protected').addEventListener('click', () => {
-    chrome.storage.local.set({
-      activated: true,
-      firstName: 'Test',
-      selectedPlan: 'monthly',
-      user: { firstName: 'Test', email: 'test@example.com' },
-      sitesVisited: 247,
-      threatsBlocked: 3
-    }, () => {
-      loadActiveView();
-    });
-  });
-
   // ── Signup form ──
 
   document.getElementById('signup-form').addEventListener('submit', async (e) => {
