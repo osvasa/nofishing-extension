@@ -564,6 +564,24 @@ body {
 
 .settings-logout:hover { opacity: 0.9; }
 
+.check-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #EC220C;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+}
+
+.check-circle span {
+  font-size: 40px;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1;
+}
+
 .hidden { display: none !important; }
 
 /* ── VIEW 0: Plan Selection ── */
@@ -893,7 +911,7 @@ body {
     <button class="active-header-gear" id="btn-open-settings">&#9881;</button>
   </div>
   <div class="active-body">
-    <img src="icons/checkmark.png" style="width:80px;height:auto;display:block;margin:0 auto 16px auto;">
+    <div class="check-circle"><span>&#10003;</span></div>
     <div class="active-status-text">PROTECTED</div>
     <div class="active-stats">
       <div class="active-stat-box">
