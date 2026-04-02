@@ -185,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const selectedPlan = storageData.selectedPlan || 'monthly';
 
       // Insert profile row
-      await sbClient.from('profiles').insert({
+      const { error: insertError } = await sbClient.from('profiles').insert({
         id: authData.user.id,
         first_name: first,
         last_name: last,
@@ -193,6 +193,16 @@ document.addEventListener('DOMContentLoaded', () => {
         plan: selectedPlan,
         activated: false,
       });
+
+      if (insertError) {
+        console.error('Profile insert failed:', insertError);
+        const banner = document.getElementById('signup-error-banner');
+        banner.textContent = 'Account created but profile setup failed. Please contact support.';
+        banner.classList.add('show');
+        btn.disabled = false;
+        btn.textContent = 'Continue';
+        return;
+      }
 
       chrome.storage.local.set({
         user: { firstName: first, lastName: last, email: email },
