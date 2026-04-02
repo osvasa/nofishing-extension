@@ -13,11 +13,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   console.log('Supabase client:', sbClient ? 'initialized' : 'FAILED');
 
-  // ── TESTING: Force reset on every popup open ──
-  chrome.storage.local.clear();
-  if (sbClient) sbClient.auth.signOut();
-  console.log('TESTING: session cleared, starting from plan selection');
-
   // ── View switching ──
 
   function showView(id) {
@@ -184,21 +179,60 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.disabled = true;
     btn.textContent = 'Creating account...';
 
-    // MOCK SIGNUP — Supabase disabled temporarily (rate limit)
-    const storageData = await new Promise((resolve) => {
-      chrome.storage.local.get(['selectedPlan'], resolve);
-    });
-    const selectedPlan = storageData.selectedPlan || 'monthly';
+    if (!sbClient) {
+      const banner = document.getElementById('signup-error-banner');
+      banner.textContent = 'Service unavailable. Please try again.';
+      banner.classList.add('show');
+      btn.disabled = false;
+      btn.textContent = 'Continue';
+      return;
+    }
 
-    chrome.storage.local.set({
-      user: { firstName: first, lastName: last, email: email },
-      firstName: first,
-      selectedPlan: selectedPlan,
-      activated: false,
-    });
+    try {
+      const { data: authData, error: authError } = await sbClient.auth.signUp({
+        email,
+        password,
+        options: { data: { first_name: first, last_name: last } },
+      });
 
-    paymentEmail = email;
-    showView('view-plan');
+      if (authError) {
+        const banner = document.getElementById('signup-error-banner');
+        banner.textContent = authError.message;
+        banner.classList.add('show');
+        btn.disabled = false;
+        btn.textContent = 'Continue';
+        return;
+      }
+
+      const storageData = await new Promise((resolve) => {
+        chrome.storage.local.get(['selectedPlan'], resolve);
+      });
+      const selectedPlan = storageData.selectedPlan || 'monthly';
+
+      // Insert profile row
+      await sbClient.from('profiles').insert({
+        id: authData.user.id,
+        first_name: first,
+        last_name: last,
+        email: email,
+        plan: selectedPlan,
+        activated: false,
+      });
+
+      chrome.storage.local.set({
+        user: { firstName: first, lastName: last, email: email },
+        firstName: first,
+        selectedPlan: selectedPlan,
+        activated: false,
+      });
+
+      paymentEmail = email;
+      showView('view-plan');
+    } catch (err) {
+      const banner = document.getElementById('signup-error-banner');
+      banner.textContent = 'Something went wrong. Please try again.';
+      banner.classList.add('show');
+    }
 
     btn.disabled = false;
     btn.textContent = 'Continue';
