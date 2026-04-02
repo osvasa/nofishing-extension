@@ -243,6 +243,20 @@ body {
   margin-bottom: 24px;
 }
 
+.signup-error-banner {
+  font-size: 11px;
+  color: #EC220C;
+  background: rgba(236,34,12,0.06);
+  border: 1px solid rgba(236,34,12,0.15);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  text-align: center;
+  display: none;
+}
+
+.signup-error-banner.show { display: block; }
+
 .login-error-banner {
   font-size: 11px;
   color: #EC220C;
@@ -808,6 +822,7 @@ body {
         </div>
         <div class="auth-checkbox-error" id="err-s-terms">You must agree to the terms</div>
 
+        <div class="signup-error-banner" id="signup-error-banner"></div>
         <button type="submit" class="auth-btn" id="btn-signup-submit">Continue</button>
       </form>
 
