@@ -41,6 +41,8 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => {
         openPaymentTab();
         showView('view-waiting');
+        startActivationPolling();
+        setTimeout(() => window.close(), 1000);
       }, 150);
     });
   }
@@ -311,10 +313,12 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
           paymentEmail = email;
           showView('view-waiting');
+          startActivationPolling();
         }
       } else {
         paymentEmail = email;
         showView('view-waiting');
+        startActivationPolling();
       }
 
     } catch (err) {
@@ -326,6 +330,50 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.disabled = false;
     btn.textContent = 'Log in';
   });
+
+  // ── Activation polling ──
+
+  let pollingInterval = null;
+
+  function startActivationPolling() {
+    if (pollingInterval) clearInterval(pollingInterval);
+    if (!sbClient || !paymentEmail) return;
+
+    let pollCount = 0;
+
+    pollingInterval = setInterval(async () => {
+      pollCount++;
+      if (pollCount > 120) {
+        clearInterval(pollingInterval);
+        pollingInterval = null;
+        return;
+      }
+
+      try {
+        const { data: profile } = await sbClient
+          .from('profiles')
+          .select('first_name, activated, plan')
+          .eq('email', paymentEmail)
+          .single();
+
+        if (profile && profile.activated) {
+          clearInterval(pollingInterval);
+          pollingInterval = null;
+
+          chrome.storage.local.set({
+            user: { firstName: profile.first_name, email: paymentEmail },
+            firstName: profile.first_name,
+            selectedPlan: profile.plan || 'monthly',
+            activated: true,
+          });
+
+          loadActiveView();
+        }
+      } catch (err) {
+        // Ignore polling errors, will retry next interval
+      }
+    }, 5000);
+  }
 
   // ── Active view ──
 
@@ -373,6 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (data.user && data.activated === false) {
           paymentEmail = data.user.email || '';
           showView('view-waiting');
+          startActivationPolling();
         }
       });
       return;
@@ -402,10 +451,12 @@ document.addEventListener('DOMContentLoaded', () => {
           } else {
             paymentEmail = profile.email || session.user.email;
             showView('view-waiting');
+            startActivationPolling();
           }
         } else {
           paymentEmail = session.user.email;
           showView('view-waiting');
+          startActivationPolling();
         }
       }
       // If no session: view-welcome is already showing (has .active class in HTML)
@@ -417,6 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (data.user && data.activated === false) {
           paymentEmail = data.user.email || '';
           showView('view-waiting');
+          startActivationPolling();
         }
       });
     }
