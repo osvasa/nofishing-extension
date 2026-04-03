@@ -17,30 +17,23 @@ body {
   color: #111111;
 }
 
-/* ── Header ── */
+/* ── Views ── */
+.view { display: none; }
+.view.active { display: block; }
+
+/* ── Shared black header ── */
 .popup-header {
   width: 100%;
-  height: 70px;
-  background: #ffffff;
+  height: 50px;
+  background: #111111;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.popup-header-text {
-  font-size: 14px;
-  font-weight: 800;
-  color: #ffffff;
-  letter-spacing: 0.06em;
-}
-
-/* ── Views ── */
-.view { display: none; }
-.view.active { display: block; }
-
-/* ── VIEW 1: Welcome / Signup ── */
+/* ── VIEW: Welcome ── */
 .welcome-body {
-  padding: 24px 20px;
+  padding: 32px 20px;
   text-align: center;
   background: #EC220C;
 }
@@ -69,7 +62,75 @@ body {
   margin-right: auto;
 }
 
-/* ── Auth card (shared signup & login) ── */
+.welcome-btn {
+  display: block;
+  width: 100%;
+  padding: 14px 16px;
+  background: #ffffff;
+  color: #111111;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  margin-bottom: 16px;
+}
+
+.welcome-btn:hover { opacity: 0.9; }
+
+.welcome-link {
+  font-size: 12px;
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 24px;
+}
+
+.welcome-link button {
+  background: none;
+  border: none;
+  color: #ffffff;
+  text-decoration: underline;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.welcome-footer {
+  font-size: 10px;
+  color: rgba(255,255,255,0.5);
+}
+
+/* ── VIEW: Login ── */
+.login-body {
+  padding: 24px 20px;
+  text-align: center;
+  background: #EC220C;
+}
+
+.login-fish {
+  width: 100px;
+  height: auto;
+  display: block;
+  margin: 0 auto 16px;
+}
+
+.login-title {
+  font-size: 24px;
+  font-weight: 900;
+  color: #ffffff;
+  margin-bottom: 8px;
+}
+
+.login-sub {
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+/* ── Auth card ── */
 .auth-card {
   background: #1a1a1a;
   border-radius: 12px;
@@ -84,13 +145,6 @@ body {
   text-align: center;
   margin-bottom: 20px;
 }
-
-.auth-row {
-  display: flex;
-  gap: 10px;
-}
-
-.auth-row .auth-field { flex: 1; }
 
 .auth-field {
   margin-bottom: 14px;
@@ -131,53 +185,26 @@ body {
 
 .field-error.show { display: block; }
 
-/* Checkbox */
-.auth-checkbox {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  margin-bottom: 18px;
-}
-
-.auth-checkbox input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  margin-top: 1px;
-  flex-shrink: 0;
-  accent-color: #EC220C;
-}
-
-.auth-checkbox label {
+.login-error-banner {
   font-size: 11px;
-  color: rgba(255,255,255,0.7);
-  line-height: 1.5;
-  cursor: pointer;
-}
-
-.auth-checkbox label a {
-  color: #ffffff;
-  text-decoration: underline;
-}
-
-.auth-checkbox label a:hover { text-decoration: underline; }
-
-.auth-checkbox-error {
-  font-size: 10px;
   color: #EC220C;
-  margin-top: -12px;
+  background: rgba(236,34,12,0.06);
+  border: 1px solid rgba(236,34,12,0.15);
+  border-radius: 8px;
+  padding: 10px 14px;
   margin-bottom: 14px;
+  text-align: center;
   display: none;
 }
 
-.auth-checkbox-error.show { display: block; }
+.login-error-banner.show { display: block; }
 
-/* Auth buttons */
 .auth-btn {
   display: block;
   width: 100%;
   padding: 13px 16px;
-  background: #ffffff;
-  color: #111111;
+  background: #EC220C;
+  color: #ffffff;
   border: none;
   border-radius: 8px;
   font-family: 'Inter', sans-serif;
@@ -197,206 +224,19 @@ body {
   margin-top: 16px;
 }
 
-.auth-switch button {
-  background: none;
-  border: none;
+.auth-switch a {
   color: #ffffff;
   text-decoration: underline;
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
   font-weight: 600;
-  cursor: pointer;
 }
-
-.auth-switch button:hover { text-decoration: underline; }
-
-.welcome-footer {
-  font-size: 10px;
-  color: rgba(255,255,255,0.6);
-  text-align: center;
-}
-
-/* ── VIEW 2: Login ── */
-.login-body {
-  padding: 24px 20px;
-  text-align: center;
-  background: #EC220C;
-}
-
-.login-fish {
-  width: 100px;
-  height: auto;
-  display: block;
-  margin: 0 auto 16px;
-}
-
-.login-title {
-  font-size: 24px;
-  font-weight: 900;
-  color: #ffffff;
-  margin-bottom: 8px;
-}
-
-.login-sub {
-  font-size: 13px;
-  color: rgba(255,255,255,0.7);
-  line-height: 1.6;
-  margin-bottom: 24px;
-}
-
-.signup-error-banner {
-  font-size: 11px;
-  color: #EC220C;
-  background: rgba(236,34,12,0.06);
-  border: 1px solid rgba(236,34,12,0.15);
-  border-radius: 8px;
-  padding: 10px 14px;
-  margin-bottom: 14px;
-  text-align: center;
-  display: none;
-}
-
-.signup-error-banner.show { display: block; }
-
-.login-error-banner {
-  font-size: 11px;
-  color: #EC220C;
-  background: rgba(236,34,12,0.06);
-  border: 1px solid rgba(236,34,12,0.15);
-  border-radius: 8px;
-  padding: 10px 14px;
-  margin-bottom: 14px;
-  text-align: center;
-  display: none;
-}
-
-.login-error-banner.show { display: block; }
 
 .login-footer {
   font-size: 10px;
-  color: rgba(255,255,255,0.6);
-  text-align: center;
-}
-
-/* ── VIEW: Confirm Email ── */
-.confirm-body {
-  padding: 32px 20px;
-  text-align: center;
-  background: #EC220C;
-}
-
-.confirm-fish {
-  width: 100px;
-  height: auto;
-  display: block;
-  margin: 0 auto 16px;
-}
-
-.confirm-title {
-  font-size: 24px;
-  font-weight: 900;
-  color: #ffffff;
-  margin-bottom: 12px;
-}
-
-.confirm-sub {
-  font-size: 13px;
-  color: rgba(255,255,255,0.7);
-  line-height: 1.6;
-  margin-bottom: 24px;
-  max-width: 320px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.confirm-sub strong {
-  color: #ffffff;
-  font-weight: 700;
-}
-
-.confirm-btn {
-  display: block;
-  width: 100%;
-  padding: 13px 16px;
-  background: #ffffff;
-  color: #111111;
-  border: none;
-  border-radius: 8px;
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: opacity 0.15s;
-  margin-bottom: 16px;
-}
-
-.confirm-btn:hover { opacity: 0.9; }
-
-.confirm-hint {
-  font-size: 11px;
   color: rgba(255,255,255,0.5);
-}
-
-/* ── VIEW 3: Waiting for Payment ── */
-.waiting-body {
-  padding: 32px 24px;
-  text-align: center;
-  background: #ffffff;
-}
-
-.waiting-fish {
-  width: 100px;
-  height: auto;
-  display: block;
-  margin: 0 auto 20px;
-}
-
-.waiting-title {
-  font-size: 16px;
-  font-weight: 800;
-  color: #111111;
-  margin-bottom: 10px;
-  line-height: 1.4;
-}
-
-.waiting-sub {
-  font-size: 12px;
-  color: #888888;
-  line-height: 1.6;
-  margin-bottom: 24px;
-}
-
-.waiting-spinner {
-  width: 28px;
-  height: 28px;
-  border: 3px solid #eeeeee;
-  border-top-color: #EC220C;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin: 0 auto 20px;
-}
-
-@keyframes spin { to { transform: rotate(360deg); } }
-
-.btn-red {
-  display: block;
-  width: 100%;
-  padding: 13px 16px;
-  background: #EC220C;
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: opacity 0.15s;
   text-align: center;
 }
 
-.btn-red:hover { opacity: 0.9; }
-
-/* ── VIEW 4: Active / Protection Status ── */
+/* ── VIEW: Active / Protection Status ── */
 .active-header {
   width: 100%;
   height: 50px;
@@ -526,7 +366,7 @@ body {
   color: rgba(255,255,255,0.3);
 }
 
-/* ── VIEW 5: Settings ── */
+/* ── VIEW: Settings ── */
 .settings-header {
   width: 100%;
   height: 50px;
@@ -635,310 +475,35 @@ body {
 
 .settings-cancel:hover { color: rgba(255,255,255,0.55); }
 
-.check-circle {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: #EC220C;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 24px;
-}
-
-.check-circle span {
-  font-size: 40px;
-  font-weight: 900;
-  color: #ffffff;
-  line-height: 1;
-}
-
 .hidden { display: none !important; }
-
-/* ── VIEW 0: Plan Selection ── */
-.plan-body {
-  padding: 24px 20px;
-  text-align: center;
-  background: #111111;
-  color: #ffffff;
-}
-
-.plan-logo {
-  width: 120px;
-  height: auto;
-  display: block;
-  margin: 0 auto 20px;
-}
-
-.plan-title {
-  font-size: 20px;
-  font-weight: 900;
-  color: #ffffff;
-  margin-bottom: 6px;
-}
-
-.plan-sub {
-  font-size: 12px;
-  color: rgba(255,255,255,0.5);
-  margin-bottom: 24px;
-}
-
-.plan-cards {
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.plan-cards > .plan-card {
-  width: 50% !important;
-  flex: 1 1 0 !important;
-  min-width: 0 !important;
-  box-sizing: border-box !important;
-}
-
-.plan-card {
-  background: #1a1a1a;
-  border: 2px solid #333;
-  border-radius: 12px;
-  padding: 20px 14px;
-  text-align: center;
-  position: relative;
-}
-
-.plan-card-label {
-  font-size: 11px;
-  font-weight: 700;
-  color: rgba(255,255,255,0.4);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 8px;
-}
-
-.plan-card-price {
-  font-size: 28px;
-  font-weight: 900;
-  color: #ffffff;
-  line-height: 1;
-  margin-bottom: 4px;
-}
-
-.plan-card-price sup {
-  font-size: 14px;
-  vertical-align: top;
-  font-weight: 700;
-}
-
-.plan-card-period {
-  font-size: 11px;
-  color: rgba(255,255,255,0.4);
-  margin-bottom: 14px;
-}
-
-.plan-card-badge {
-  position: absolute;
-  top: -12px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 10px;
-  font-weight: 700;
-  background: #EC220C;
-  color: #ffffff;
-  padding: 2px 8px;
-  border-radius: 4px;
-  z-index: 1;
-  white-space: nowrap;
-}
-
-.plan-card-btn {
-  display: block;
-  width: 100%;
-  padding: 10px;
-  background: #EC220C;
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: opacity 0.15s;
-}
-
-.plan-card-btn:hover { opacity: 0.9; }
-.plan-card-btn.selected { background: #ffffff; color: #111111; }
-
-.plan-benefits-card {
-  margin-top: 16px;
-  border: 2px solid #EC220C;
-  border-radius: 12px;
-  overflow: hidden;
-  text-align: left;
-}
-
-.plan-benefits-header {
-  background: #EC220C;
-  color: #ffffff;
-  font-size: 13px;
-  font-weight: 800;
-  padding: 10px 14px;
-  text-align: center;
-}
-
-.plan-benefits-body {
-  background: #111111;
-  padding: 14px;
-}
-
-.plan-benefit-item {
-  font-size: 11px;
-  color: rgba(255,255,255,0.8);
-  padding: 4px 0;
-  line-height: 1.5;
-}
-
-.plan-benefit-check {
-  color: #EC220C;
-  font-weight: 700;
-  margin-right: 6px;
-}
-
-.plan-footer {
-  font-size: 10px;
-  color: rgba(255,255,255,0.3);
-  margin-top: 16px;
-}
-
-.plan-bottom-banner {
-  background: #111111;
-  text-align: center;
-  padding: 0 20px 12px;
-}
-
-.plan-bottom-fish {
-  width: 80px;
-  height: auto;
-  opacity: 0.35;
-}
 </style>
 </head>
 <body>
 
 <!-- ══════════════════════════════════════════ -->
-<!-- VIEW 0: Plan Selection                    -->
+<!-- VIEW: Welcome                             -->
 <!-- ══════════════════════════════════════════ -->
-<div id="view-plan" class="view">
-  <div class="popup-header">
-    <img src="icons/nofishing-ai-bubbles.gif" alt="NøFishing AI" style="height:50px;width:auto;display:block;"/>
-  </div>
-  <div class="plan-body">
-    <img src="icons/logo.png" alt="NøFishing AI" class="plan-logo"/>
-    <div class="plan-title">Choose Your Plan</div>
-    <p class="plan-sub">AI-powered phishing protection</p>
-
-    <div class="plan-cards">
-      <div class="plan-card">
-        <div class="plan-card-label">Monthly</div>
-        <div class="plan-card-price"><sup>$</sup>4.99</div>
-        <div class="plan-card-period">/month</div>
-        <button class="plan-card-btn" id="btn-plan-monthly">Select</button>
-      </div>
-      <div class="plan-card">
-        <span class="plan-card-badge">Best Value</span>
-        <div class="plan-card-label">Yearly</div>
-        <div class="plan-card-price"><sup>$</sup>49.99</div>
-        <div class="plan-card-period">/year — save 17%</div>
-        <button class="plan-card-btn" id="btn-plan-yearly">Select</button>
-      </div>
-    </div>
-
-    <div class="plan-benefits-card">
-      <div class="plan-benefits-header">This is how our AI stops scammers.</div>
-      <div class="plan-benefits-body">
-        <div class="plan-benefit-item"><span class="plan-benefit-check">&#10003;</span> Analyzes every URL in real time, every single visit</div>
-        <div class="plan-benefit-item"><span class="plan-benefit-check">&#10003;</span> Catches threats before anyone has reported them</div>
-        <div class="plan-benefit-item"><span class="plan-benefit-check">&#10003;</span> Proactive — detects suspicious patterns instantly</div>
-        <div class="plan-benefit-item"><span class="plan-benefit-check">&#10003;</span> 14-point AI heuristic engine running silently 24/7</div>
-        <div class="plan-benefit-item"><span class="plan-benefit-check">&#10003;</span> Blocks brand new phishing domains from day one</div>
-        <div class="plan-benefit-item"><span class="plan-benefit-check">&#10003;</span> AI model updates continuously in the background</div>
-        <div class="plan-benefit-item"><span class="plan-benefit-check">&#10003;</span> Built specifically to protect YOU — not just tick a box</div>
-      </div>
-    </div>
-
-    <div class="plan-footer">Cancel anytime. No hidden fees.</div>
-  </div>
-</div>
-
 <div id="view-welcome" class="view active">
+  <div class="popup-header">
+    <img src="icons/logo.png" alt="NøFishing AI" style="height:24px;width:auto;"/>
+  </div>
   <div class="welcome-body">
     <img src="icons/nofishing-ai-bubbles.gif" alt="NøFishing AI" class="welcome-fish"/>
-    <div class="welcome-title">WELCOME ABOARD!</div>
-    <p class="welcome-sub">By deciding to not get hooked by phishing scams, you are already on the right track.</p>
-
-    <div class="auth-card">
-      <div class="auth-title">Sign up</div>
-
-      <form id="signup-form" novalidate>
-        <div class="auth-row">
-          <div class="auth-field">
-            <label for="s-first">First Name</label>
-            <input id="s-first" type="text" placeholder="Jane"/>
-            <div class="field-error" id="err-s-first"></div>
-          </div>
-          <div class="auth-field">
-            <label for="s-last">Last Name</label>
-            <input id="s-last" type="text" placeholder="Smith"/>
-            <div class="field-error" id="err-s-last"></div>
-          </div>
-        </div>
-
-        <div class="auth-field">
-          <label for="s-email">Email</label>
-          <input id="s-email" type="email" placeholder="you@example.com"/>
-          <div class="field-error" id="err-s-email"></div>
-        </div>
-
-        <div class="auth-field">
-          <label for="s-password">Password</label>
-          <input id="s-password" type="password" placeholder="6+ characters"/>
-          <div class="field-error" id="err-s-password"></div>
-        </div>
-
-        <div class="auth-checkbox">
-          <input type="checkbox" id="s-terms"/>
-          <label for="s-terms">By signing up, I agree with the <a href="#">Terms of Use</a> and <a href="#">Privacy Policy</a></label>
-        </div>
-        <div class="auth-checkbox-error" id="err-s-terms">You must agree to the terms</div>
-
-        <div class="signup-error-banner" id="signup-error-banner"></div>
-        <button type="submit" class="auth-btn" id="btn-signup-submit">Continue</button>
-      </form>
-
-      <div class="auth-switch">Already have an account? <button id="btn-go-login">Log in</button></div>
-    </div>
-
-    <div class="welcome-footer">AI-Powered Phishing Protection</div>
+    <div class="welcome-title">Don't Get Hooked.</div>
+    <p class="welcome-sub">AI-powered phishing protection for your browser.</p>
+    <button class="welcome-btn" id="btn-get-protected">Get Protected Now</button>
+    <div class="welcome-link">Already have an account? <button id="btn-go-login">Log in</button></div>
+    <div class="welcome-footer">NøFishing AI v1.0.0</div>
   </div>
 </div>
 
 <!-- ══════════════════════════════════════════ -->
-<!-- VIEW: Confirm Email                       -->
-<!-- ══════════════════════════════════════════ -->
-<div id="view-confirm-email" class="view">
-  <div class="confirm-body">
-    <img src="icons/nofishing-ai-bubbles.gif" alt="NøFishing AI" class="confirm-fish"/>
-    <div class="confirm-title">Check your email!</div>
-    <p class="confirm-sub">We sent a confirmation link to <strong id="confirm-email-address">your email</strong>. Click it to activate your account, then come back here and log in.</p>
-    <button class="confirm-btn" id="btn-confirm-login">I confirmed — Log me in</button>
-    <div class="confirm-hint">Didn't get it? Check your spam folder.</div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════ -->
-<!-- VIEW 2: Login (Step 6)                    -->
+<!-- VIEW: Login                               -->
 <!-- ══════════════════════════════════════════ -->
 <div id="view-login" class="view">
+  <div class="popup-header">
+    <img src="icons/logo.png" alt="NøFishing AI" style="height:24px;width:auto;"/>
+  </div>
   <div class="login-body">
     <img src="icons/nofishing-ai-bubbles.gif" alt="NøFishing AI" class="login-fish"/>
     <div class="login-title">Welcome back</div>
@@ -965,28 +530,15 @@ body {
         <button type="submit" class="auth-btn" id="btn-login-submit">Log in</button>
       </form>
 
-      <div class="auth-switch">Don't have an account? <button id="btn-go-signup">Create one</button></div>
+      <div class="auth-switch">Don't have an account? <a href="https://nofishing.ai" target="_blank">Get protected</a></div>
     </div>
 
-    <div class="login-footer">AI-Powered Phishing Protection</div>
+    <div class="login-footer">NøFishing AI v1.0.0</div>
   </div>
 </div>
 
 <!-- ══════════════════════════════════════════ -->
-<!-- VIEW 3: Waiting for Payment (Step 3)      -->
-<!-- ══════════════════════════════════════════ -->
-<div id="view-waiting" class="view">
-  <div class="waiting-body">
-    <img src="icons/fish-bubbles-white.png" alt="NøFishing AI" class="waiting-fish"/>
-    <div class="waiting-spinner"></div>
-    <div class="waiting-title">Complete your payment in the browser tab to activate protection</div>
-    <p class="waiting-sub">A payment page has been opened. Once you complete your purchase, protection will activate automatically.</p>
-    <button id="btn-open-payment" class="btn-red">Open Payment Page</button>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════ -->
-<!-- VIEW 4: Active / Protection Status (Step 5) -->
+<!-- VIEW: Active / Protection Status          -->
 <!-- ══════════════════════════════════════════ -->
 <div id="view-active" class="view">
   <div class="active-header">
@@ -1015,7 +567,7 @@ body {
 </div>
 
 <!-- ══════════════════════════════════════════ -->
-<!-- VIEW 5: Settings                          -->
+<!-- VIEW: Settings                            -->
 <!-- ══════════════════════════════════════════ -->
 <div id="view-settings" class="view">
   <div class="settings-header">
