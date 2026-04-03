@@ -250,6 +250,11 @@ chrome.webNavigation.onCompleted.addListener(async (details) => {
   const result = analyzeUrl(details.url);
   tabResults[details.tabId] = { url: details.url, ...result };
 
+  // Increment sitesVisited counter
+  chrome.storage.local.get(['sitesVisited'], (data) => {
+    chrome.storage.local.set({ sitesVisited: (data.sitesVisited || 0) + 1 });
+  });
+
   // Update badge
   updateBadge(details.tabId, result.level);
 
