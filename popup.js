@@ -186,6 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const selectedPlan = storageData.selectedPlan || 'monthly';
 
       // Insert profile row via serverless function
+      console.log('Creating profile with:', { id: authData.user.id, email: email, plan: selectedPlan });
       const profileRes = await fetch('https://nofishing.ai/api/create-profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
