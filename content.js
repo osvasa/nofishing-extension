@@ -130,3 +130,24 @@
     }
   });
 })();
+
+// Layer 1: Immediate browser security signal detection
+(function() {
+  if (window.location.protocol === 'http:' &&
+      window.location.hostname !== 'localhost' &&
+      window.location.hostname !== '127.0.0.1') {
+
+    // Check if background already flagged this page; if not, request HTTP warning relay
+    setTimeout(() => {
+      chrome.runtime.sendMessage({ action: 'getStatus' }, (response) => {
+        if (response && response.activated && response.level === 'safe') {
+          // Background scored safe but page is HTTP — ask background to relay warning overlay
+          chrome.runtime.sendMessage({
+            action: 'relayHttpWarning',
+            url: window.location.href
+          });
+        }
+      });
+    }, 1000);
+  }
+})();

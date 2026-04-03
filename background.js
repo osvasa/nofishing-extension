@@ -355,4 +355,19 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     sendResponse(result);
     return false;
   }
+
+  if (msg.action === 'relayHttpWarning') {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]) {
+        chrome.tabs.sendMessage(tabs[0].id, {
+          action: 'showOverlay',
+          level: 'warning',
+          score: 35,
+          reasons: ['This site is not using a secure connection (HTTP). Your data could be intercepted.'],
+          url: msg.url,
+        }).catch(() => {});
+      }
+    });
+    return false;
+  }
 });
