@@ -185,18 +185,22 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       const selectedPlan = storageData.selectedPlan || 'monthly';
 
-      // Insert profile row
-      const { error: insertError } = await sbClient.from('profiles').insert({
-        id: authData.user.id,
-        first_name: first,
-        last_name: last,
-        email: email,
-        plan: selectedPlan,
-        activated: false,
+      // Insert profile row via serverless function
+      const profileRes = await fetch('https://nofishing.ai/api/create-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: authData.user.id,
+          first_name: first,
+          last_name: last,
+          email: email,
+          plan: selectedPlan,
+        }),
       });
+      const profileData = await profileRes.json();
 
-      if (insertError) {
-        console.error('Profile insert failed:', insertError);
+      if (!profileRes.ok) {
+        console.error('Profile insert failed:', profileData.error);
         const banner = document.getElementById('signup-error-banner');
         banner.textContent = 'Account created but profile setup failed. Please contact support.';
         banner.classList.add('show');
