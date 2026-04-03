@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── Navigation buttons ──
 
   document.getElementById('btn-get-protected').addEventListener('click', () => {
-    chrome.tabs.create({ url: 'https://nofishing.ai' });
+    chrome.tabs.create({ url: 'https://nofishing.ai/signup' });
   });
 
   document.getElementById('btn-go-login').addEventListener('click', () => showView('view-login'));
