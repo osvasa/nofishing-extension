@@ -278,6 +278,65 @@ body {
   text-align: center;
 }
 
+/* ── VIEW: Confirm Email ── */
+.confirm-body {
+  padding: 32px 20px;
+  text-align: center;
+  background: #EC220C;
+}
+
+.confirm-fish {
+  width: 100px;
+  height: auto;
+  display: block;
+  margin: 0 auto 16px;
+}
+
+.confirm-title {
+  font-size: 24px;
+  font-weight: 900;
+  color: #ffffff;
+  margin-bottom: 12px;
+}
+
+.confirm-sub {
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.6;
+  margin-bottom: 24px;
+  max-width: 320px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.confirm-sub strong {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.confirm-btn {
+  display: block;
+  width: 100%;
+  padding: 13px 16px;
+  background: #ffffff;
+  color: #111111;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  margin-bottom: 16px;
+}
+
+.confirm-btn:hover { opacity: 0.9; }
+
+.confirm-hint {
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+}
+
 /* ── VIEW 3: Waiting for Payment ── */
 .waiting-body {
   padding: 32px 24px;
@@ -860,6 +919,19 @@ body {
     </div>
 
     <div class="welcome-footer">AI-Powered Phishing Protection</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- VIEW: Confirm Email                       -->
+<!-- ══════════════════════════════════════════ -->
+<div id="view-confirm-email" class="view">
+  <div class="confirm-body">
+    <img src="icons/nofishing-ai-bubbles.gif" alt="NøFishing AI" class="confirm-fish"/>
+    <div class="confirm-title">Check your email!</div>
+    <p class="confirm-sub">We sent a confirmation link to <strong id="confirm-email-address">your email</strong>. Click it to activate your account, then come back here and log in.</p>
+    <button class="confirm-btn" id="btn-confirm-login">I confirmed — Log me in</button>
+    <div class="confirm-hint">Didn't get it? Check your spam folder.</div>
   </div>
 </div>
 

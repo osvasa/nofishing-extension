@@ -54,6 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('btn-go-login').addEventListener('click', () => showView('view-login'));
   document.getElementById('btn-go-signup').addEventListener('click', () => showView('view-welcome'));
+  document.getElementById('btn-confirm-login').addEventListener('click', () => showView('view-login'));
 
   // ── Helpers ──
 
@@ -212,7 +213,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       paymentEmail = email;
-      showView('view-plan');
+      document.getElementById('confirm-email-address').textContent = email;
+      showView('view-confirm-email');
     } catch (err) {
       const banner = document.getElementById('signup-error-banner');
       banner.textContent = 'Something went wrong. Please try again.';
