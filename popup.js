@@ -405,7 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
             months[createdDate.getMonth()] + ' ' + createdDate.getDate() + ', ' + createdDate.getFullYear();
 
           // Days protected
-          const days = Math.max(0, Math.ceil((Date.now() - createdDate.getTime()) / 86400000));
+          const days = Math.max(1, Math.floor((Date.now() - createdDate.getTime()) / 86400000) + 1);
           document.getElementById('settings-days').textContent = days;
 
           // Next renewal
