@@ -392,7 +392,7 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         const { data: profile } = await sbClient
           .from('profiles')
-          .select('created_at, plan')
+          .select('id, created_at, plan')
           .eq('email', email)
           .single();
 
@@ -425,6 +425,16 @@ document.addEventListener('DOMContentLoaded', () => {
           }
           document.getElementById('settings-renews').textContent =
             months[renewalDate.getMonth()] + ' ' + renewalDate.getDate() + ', ' + renewalDate.getFullYear();
+
+          // License key
+          if (profile.id) {
+            const clean = profile.id.replace(/-/g, '');
+            document.getElementById('settings-license').textContent =
+              'NFAI-' + clean.substring(0, 4).toUpperCase() + '-' + clean.substring(4, 8).toUpperCase();
+          }
+
+          // Coverage
+          document.getElementById('settings-coverage').textContent = 'All websites · Real-time AI · 1 device';
         }
       } catch (err) {
         // Supabase unavailable — leave defaults
