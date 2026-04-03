@@ -147,6 +147,52 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.textContent = 'Log in';
   });
 
+  // ── Activation polling ──
+
+  let pollingInterval = null;
+  let pollingEmail = '';
+
+  function startActivationPolling(email) {
+    if (pollingInterval) clearInterval(pollingInterval);
+    if (!sbClient || !email) return;
+
+    pollingEmail = email;
+    let pollCount = 0;
+
+    pollingInterval = setInterval(async () => {
+      pollCount++;
+      if (pollCount > 120) {
+        clearInterval(pollingInterval);
+        pollingInterval = null;
+        return;
+      }
+
+      try {
+        const { data: profile } = await sbClient
+          .from('profiles')
+          .select('first_name, activated, plan')
+          .eq('email', pollingEmail)
+          .single();
+
+        if (profile && profile.activated) {
+          clearInterval(pollingInterval);
+          pollingInterval = null;
+
+          chrome.storage.local.set({
+            user: { firstName: profile.first_name, email: pollingEmail },
+            firstName: profile.first_name,
+            selectedPlan: profile.plan || 'monthly',
+            activated: true,
+          });
+
+          loadActiveView();
+        }
+      } catch (err) {
+        // Ignore polling errors, will retry next interval
+      }
+    }, 5000);
+  }
+
   // ── Active view ──
 
   function loadActiveView() {
@@ -277,8 +323,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
           if (profile.activated) {
             loadActiveView();
+          } else {
+            // Not activated — stay on view-welcome, poll in background
+            startActivationPolling(profile.email || session.user.email);
           }
-          // If not activated, stay on view-welcome
         }
       }
       // If no session: view-welcome is already showing
