@@ -507,7 +507,7 @@ body {
 .settings-section-label {
   font-size: 10px;
   font-weight: 700;
-  color: #EC220C;
+  color: #ffffff;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin-bottom: 10px;
@@ -518,8 +518,7 @@ body {
   border-radius: 10px;
   padding: 14px 16px;
   margin-bottom: 16px;
-  border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  border: 1px solid #333333;
 }
 
 .settings-row {
@@ -542,7 +541,7 @@ body {
 }
 
 .settings-row-value.status-active {
-  color: #EC220C;
+  color: #22C55E;
   font-weight: 700;
 }
 
@@ -550,8 +549,8 @@ body {
   display: block;
   width: 100%;
   padding: 14px 16px;
-  background: #ffffff;
-  color: #EC220C;
+  background: #EC220C;
+  color: #ffffff;
   border: none;
   border-radius: 8px;
   font-family: 'Inter', sans-serif;
@@ -563,6 +562,18 @@ body {
 }
 
 .settings-logout:hover { opacity: 0.9; }
+
+.settings-cancel {
+  display: block;
+  text-align: center;
+  margin-top: 14px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.35);
+  text-decoration: none;
+  font-family: 'Inter', sans-serif;
+}
+
+.settings-cancel:hover { color: rgba(255,255,255,0.55); }
 
 .check-circle {
   width: 80px;
@@ -949,17 +960,38 @@ body {
         <span class="settings-row-label">Plan</span>
         <span class="settings-row-value" id="settings-plan">—</span>
       </div>
+      <div class="settings-row">
+        <span class="settings-row-label">Member since</span>
+        <span class="settings-row-value" id="settings-member-since">—</span>
+      </div>
+      <div class="settings-row">
+        <span class="settings-row-label">Renews on</span>
+        <span class="settings-row-value" id="settings-renews">—</span>
+      </div>
     </div>
 
     <div class="settings-section-label">Protection</div>
     <div class="settings-card">
       <div class="settings-row">
         <span class="settings-row-label">Status</span>
-        <span class="settings-row-value status-active"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#EC220C;margin-right:6px;vertical-align:middle;"></span>Active</span>
+        <span class="settings-row-value status-active"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22C55E;margin-right:6px;vertical-align:middle;"></span>Active</span>
+      </div>
+      <div class="settings-row">
+        <span class="settings-row-label">Days protected</span>
+        <span class="settings-row-value" id="settings-days">—</span>
+      </div>
+      <div class="settings-row">
+        <span class="settings-row-label">Sites scanned</span>
+        <span class="settings-row-value" id="settings-sites">0</span>
+      </div>
+      <div class="settings-row">
+        <span class="settings-row-label">Threats blocked</span>
+        <span class="settings-row-value" id="settings-threats">0</span>
       </div>
     </div>
 
     <button class="settings-logout" id="btn-logout">Log Out</button>
+    <a href="mailto:hello@nofishing.ai?subject=Cancel Subscription" class="settings-cancel">Cancel subscription</a>
   </div>
 </div>
 

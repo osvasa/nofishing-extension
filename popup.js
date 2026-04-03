@@ -372,14 +372,64 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Settings view ──
 
-  document.getElementById('btn-open-settings').addEventListener('click', () => {
-    // Populate settings with stored data
-    chrome.storage.local.get(['user', 'selectedPlan'], (data) => {
-      document.getElementById('settings-email').textContent = (data.user && data.user.email) || '—';
-      const plan = data.selectedPlan || 'monthly';
-      document.getElementById('settings-plan').textContent = plan === 'yearly' ? 'Yearly Protection' : 'Monthly Protection';
-    });
+  document.getElementById('btn-open-settings').addEventListener('click', async () => {
     showView('view-settings');
+
+    const data = await new Promise((resolve) => {
+      chrome.storage.local.get(['user', 'selectedPlan', 'sitesVisited', 'threatsBlocked'], resolve);
+    });
+
+    const email = (data.user && data.user.email) || '—';
+    const plan = data.selectedPlan || 'monthly';
+
+    document.getElementById('settings-email').textContent = email;
+    document.getElementById('settings-plan').textContent = plan === 'yearly' ? 'Yearly Protection $49.99/yr' : 'Monthly Protection $4.99/mo';
+    document.getElementById('settings-sites').textContent = data.sitesVisited || 0;
+    document.getElementById('settings-threats').textContent = data.threatsBlocked || 0;
+
+    // Fetch profile from Supabase for dates
+    if (sbClient && email !== '—') {
+      try {
+        const { data: profile } = await sbClient
+          .from('profiles')
+          .select('created_at, plan')
+          .eq('email', email)
+          .single();
+
+        if (profile && profile.created_at) {
+          const createdDate = new Date(profile.created_at);
+          const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+          // Member since
+          document.getElementById('settings-member-since').textContent =
+            months[createdDate.getMonth()] + ' ' + createdDate.getDate() + ', ' + createdDate.getFullYear();
+
+          // Days protected
+          const days = Math.floor((Date.now() - createdDate.getTime()) / 86400000);
+          document.getElementById('settings-days').textContent = days;
+
+          // Next renewal
+          const renewalDate = new Date(createdDate);
+          if ((profile.plan || plan) === 'yearly') {
+            renewalDate.setFullYear(renewalDate.getFullYear() + 1);
+          } else {
+            renewalDate.setMonth(renewalDate.getMonth() + 1);
+          }
+          // Advance renewal past today
+          while (renewalDate < new Date()) {
+            if ((profile.plan || plan) === 'yearly') {
+              renewalDate.setFullYear(renewalDate.getFullYear() + 1);
+            } else {
+              renewalDate.setMonth(renewalDate.getMonth() + 1);
+            }
+          }
+          document.getElementById('settings-renews').textContent =
+            months[renewalDate.getMonth()] + ' ' + renewalDate.getDate() + ', ' + renewalDate.getFullYear();
+        }
+      } catch (err) {
+        // Supabase unavailable — leave defaults
+      }
+    }
   });
 
   document.getElementById('btn-settings-back').addEventListener('click', () => {
