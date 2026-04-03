@@ -39,6 +39,12 @@
   50% { transform: scale(1.05); }
 }
 
+@keyframes iconPulse {
+  0%   { transform: scale(1);    filter: drop-shadow(0 0 0px #EC220C); }
+  50%  { transform: scale(1.12); filter: drop-shadow(0 0 18px #EC220C); }
+  100% { transform: scale(1);    filter: drop-shadow(0 0 0px #EC220C); }
+}
+
 /* Danger — red */
 #nofishing-overlay.nf-danger {
   background: #EC220C !important;
@@ -123,6 +129,7 @@
   border-radius: 50%;
   background: none !important;
   border: none !important;
+  animation: iconPulse 1.2s ease-in-out infinite;
 }
 
 /* Title */
