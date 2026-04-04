@@ -20,23 +20,48 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById(id).classList.add('active');
   }
 
-  // ── Stored email for payment ──
+  // ── Plan selection buttons ──
 
-  let paymentEmail = '';
+  const btnMonthly = document.getElementById('btn-plan-monthly');
+  const btnYearly = document.getElementById('btn-plan-yearly');
+
+  function selectPlan(plan) {
+    if (plan === 'monthly') {
+      btnMonthly.classList.add('selected');
+      btnMonthly.innerHTML = '<span style="color:#EC220C;font-weight:700;">✓</span> Monthly';
+      btnYearly.classList.remove('selected');
+      btnYearly.textContent = 'Select';
+    } else {
+      btnYearly.classList.add('selected');
+      btnYearly.innerHTML = '<span style="color:#EC220C;font-weight:700;">✓</span> Yearly';
+      btnMonthly.classList.remove('selected');
+      btnMonthly.textContent = 'Select';
+    }
+    chrome.storage.local.set({ selectedPlan: plan }, () => {
+      setTimeout(() => {
+        openPaymentTab();
+        showView('view-waiting');
+        startActivationPolling();
+        setTimeout(() => window.close(), 1000);
+      }, 150);
+    });
+  }
+
+  btnMonthly.addEventListener('click', () => selectPlan('monthly'));
+  btnYearly.addEventListener('click', () => selectPlan('yearly'));
 
   // ── Navigation buttons ──
 
-  document.getElementById('btn-get-protected').addEventListener('click', () => showView('view-signup'));
   document.getElementById('btn-go-login').addEventListener('click', () => showView('view-login'));
-  document.getElementById('btn-signup-go-login').addEventListener('click', () => showView('view-login'));
-  document.getElementById('btn-login-go-signup').addEventListener('click', () => showView('view-signup'));
-
-  document.getElementById('btn-open-payment').addEventListener('click', () => {
-    const email = paymentEmail || '';
-    chrome.tabs.create({ url: 'https://nofishing.ai/payment?email=' + encodeURIComponent(email) + '&plan=monthly' });
-  });
+  document.getElementById('btn-go-signup').addEventListener('click', () => showView('view-welcome'));
 
   // ── Helpers ──
+
+  function escapeHtml(str) {
+    const el = document.createElement('span');
+    el.textContent = str;
+    return el.innerHTML;
+  }
 
   function showFieldError(inputId, errId, message) {
     document.getElementById(inputId).classList.add('input-error');
@@ -51,13 +76,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Clear errors on typing — signup fields
-  ['s-first', 's-last', 's-email', 's-confirm-email', 's-password'].forEach((id) => {
+  ['s-first', 's-last', 's-email', 's-password'].forEach((id) => {
     document.getElementById(id).addEventListener('input', () => {
       clearFieldError(id, 'err-' + id);
-      document.getElementById('signup-error-banner').classList.remove('show');
     });
   });
 
+  // Clear terms error when checkbox changes
   document.getElementById('s-terms').addEventListener('change', () => {
     document.getElementById('err-s-terms').classList.remove('show');
   });
@@ -70,21 +95,64 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // ── Payment URL helper ──
+
+  let paymentEmail = '';
+
+  function openPaymentTab() {
+    chrome.storage.local.get(['selectedPlan'], (data) => {
+      const plan = data.selectedPlan || 'monthly';
+      const url = 'https://nofishing.ai/payment?email=' + encodeURIComponent(paymentEmail) + '&plan=' + plan;
+      chrome.tabs.create({ url: url });
+    });
+  }
+
+  // "Open Payment Page" button on waiting screen
+  document.getElementById('btn-open-payment').addEventListener('click', () => {
+    openPaymentTab();
+  });
+
+  // Reset button for testing
+  document.getElementById('btn-reset-test').addEventListener('click', async () => {
+    if (sbClient) await sbClient.auth.signOut();
+    chrome.storage.local.clear(() => {
+      showView('view-welcome');
+    });
+  });
+
+  // Preview active screen for testing
+  document.getElementById('btn-preview-active').addEventListener('click', () => {
+    loadActiveView();
+  });
+
+  // Preview protected mode from login screen
+  document.getElementById('btn-preview-protected').addEventListener('click', () => {
+    chrome.storage.local.set({
+      activated: true,
+      firstName: 'Test',
+      selectedPlan: 'monthly',
+      user: { firstName: 'Test', email: 'test@example.com' },
+      sitesVisited: 247,
+      threatsBlocked: 3
+    }, () => {
+      loadActiveView();
+    });
+  });
+
   // ── Signup form ──
 
   document.getElementById('signup-form').addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    ['s-first', 's-last', 's-email', 's-confirm-email', 's-password'].forEach((id) => {
+    // Clear all errors
+    ['s-first', 's-last', 's-email', 's-password'].forEach((id) => {
       clearFieldError(id, 'err-' + id);
     });
     document.getElementById('err-s-terms').classList.remove('show');
-    document.getElementById('signup-error-banner').classList.remove('show');
 
     const first = document.getElementById('s-first').value.trim();
     const last = document.getElementById('s-last').value.trim();
     const email = document.getElementById('s-email').value.trim();
-    const confirmEmail = document.getElementById('s-confirm-email').value.trim();
     const password = document.getElementById('s-password').value;
     const terms = document.getElementById('s-terms').checked;
 
@@ -96,11 +164,6 @@ document.addEventListener('DOMContentLoaded', () => {
       showFieldError('s-email', 'err-s-email', 'Email is required'); valid = false;
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       showFieldError('s-email', 'err-s-email', 'Enter a valid email'); valid = false;
-    }
-    if (!confirmEmail) {
-      showFieldError('s-confirm-email', 'err-s-confirm-email', 'Please confirm your email'); valid = false;
-    } else if (confirmEmail !== email) {
-      showFieldError('s-confirm-email', 'err-s-confirm-email', 'Emails do not match'); valid = false;
     }
     if (!password) {
       showFieldError('s-password', 'err-s-password', 'Password is required'); valid = false;
@@ -143,53 +206,30 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // Create profile via serverless function
-      try {
-        await fetch('https://nofishing.ai/api/create-profile', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            id: authData.user.id,
-            first_name: first,
-            last_name: last,
-            email: email,
-            plan: 'monthly',
-          }),
-        });
-      } catch (profileErr) {
-        console.error('Profile creation failed:', profileErr);
-      }
+      const storageData = await new Promise((resolve) => {
+        chrome.storage.local.get(['selectedPlan'], resolve);
+      });
+      const selectedPlan = storageData.selectedPlan || 'monthly';
 
-      // Send welcome email
-      try {
-        await fetch('https://nofishing.ai/api/send-welcome', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: email, first_name: first }),
-        });
-      } catch (welcomeErr) {
-        console.error('Welcome email failed:', welcomeErr);
-      }
+      // Insert profile row
+      await sbClient.from('profiles').insert({
+        id: authData.user.id,
+        first_name: first,
+        last_name: last,
+        email: email,
+        plan: selectedPlan,
+        activated: false,
+      });
 
-      // Store user data
       chrome.storage.local.set({
         user: { firstName: first, lastName: last, email: email },
         firstName: first,
-        selectedPlan: 'monthly',
+        selectedPlan: selectedPlan,
         activated: false,
-        pollingEmail: email,
       });
 
       paymentEmail = email;
-
-      // Open plans page in new tab
-      chrome.tabs.create({ url: 'https://nofishing.ai/plans?email=' + encodeURIComponent(email) });
-
-      // Show waiting view and start polling
-      console.log('Starting polling for email:', email);
-      showView('view-waiting');
-      startActivationPolling(email);
-
+      showView('view-plan');
     } catch (err) {
       const banner = document.getElementById('signup-error-banner');
       banner.textContent = 'Something went wrong. Please try again.';
@@ -238,6 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
+      // Sign in with Supabase Auth
       const { data: authData, error: authError } = await sbClient.auth.signInWithPassword({
         email: email,
         password: password,
@@ -272,12 +313,12 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
           paymentEmail = email;
           showView('view-waiting');
-          startActivationPolling(email);
+          startActivationPolling();
         }
       } else {
         paymentEmail = email;
         showView('view-waiting');
-        startActivationPolling(email);
+        startActivationPolling();
       }
 
     } catch (err) {
@@ -293,15 +334,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── Activation polling ──
 
   let pollingInterval = null;
-  let pollingEmail = '';
 
-  function startActivationPolling(email) {
+  function startActivationPolling() {
     if (pollingInterval) clearInterval(pollingInterval);
-    if (!email) return;
+    if (!sbClient || !paymentEmail) return;
 
-    pollingEmail = email;
-    console.log('Polling email value:', pollingEmail);
-    console.log('Fetching:', 'https://nofishing.ai/api/check-activation?email=' + encodeURIComponent(pollingEmail));
     let pollCount = 0;
 
     pollingInterval = setInterval(async () => {
@@ -313,19 +350,20 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       try {
-        const res = await fetch('https://nofishing.ai/api/check-activation?email=' + encodeURIComponent(pollingEmail));
-        const data = await res.json();
+        const { data: profile } = await sbClient
+          .from('profiles')
+          .select('first_name, activated, plan')
+          .eq('email', paymentEmail)
+          .single();
 
-        console.log('Polling result:', JSON.stringify(data));
-
-        if (data.activated) {
+        if (profile && profile.activated) {
           clearInterval(pollingInterval);
           pollingInterval = null;
 
           chrome.storage.local.set({
-            user: { firstName: data.first_name || '', email: pollingEmail },
-            firstName: data.first_name || '',
-            selectedPlan: data.plan || 'monthly',
+            user: { firstName: profile.first_name, email: paymentEmail },
+            firstName: profile.first_name,
+            selectedPlan: profile.plan || 'monthly',
             activated: true,
           });
 
@@ -351,73 +389,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Settings view ──
 
-  document.getElementById('btn-open-settings').addEventListener('click', async () => {
-    showView('view-settings');
-
-    const data = await new Promise((resolve) => {
-      chrome.storage.local.get(['user', 'selectedPlan', 'sitesVisited', 'threatsBlocked'], resolve);
+  document.getElementById('btn-open-settings').addEventListener('click', () => {
+    // Populate settings with stored data
+    chrome.storage.local.get(['user', 'selectedPlan'], (data) => {
+      document.getElementById('settings-email').textContent = (data.user && data.user.email) || '—';
+      const plan = data.selectedPlan || 'monthly';
+      document.getElementById('settings-plan').textContent = plan === 'yearly' ? 'Yearly Protection' : 'Monthly Protection';
     });
-
-    const email = (data.user && data.user.email) || '—';
-    const plan = data.selectedPlan || 'monthly';
-
-    document.getElementById('settings-email').textContent = email;
-    document.getElementById('settings-plan').textContent = plan === 'yearly' ? 'Yearly Protection $49.99/yr' : 'Monthly Protection $4.99/mo';
-    document.getElementById('settings-sites').textContent = data.sitesVisited || 0;
-    document.getElementById('settings-threats').textContent = data.threatsBlocked || 0;
-
-    // Fetch profile from Supabase for dates
-    if (sbClient && email !== '—') {
-      try {
-        const { data: profile } = await sbClient
-          .from('profiles')
-          .select('id, created_at, plan')
-          .eq('email', email)
-          .single();
-
-        if (profile && profile.created_at) {
-          const createdDate = new Date(profile.created_at);
-          const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-
-          // Protected since
-          document.getElementById('settings-member-since').textContent =
-            months[createdDate.getMonth()] + ' ' + createdDate.getDate() + ', ' + createdDate.getFullYear();
-
-          // Days protected
-          const days = Math.max(1, Math.floor((Date.now() - createdDate.getTime()) / 86400000) + 1);
-          document.getElementById('settings-days').textContent = days;
-
-          // Next renewal
-          const renewalDate = new Date(createdDate);
-          if ((profile.plan || plan) === 'yearly') {
-            renewalDate.setFullYear(renewalDate.getFullYear() + 1);
-          } else {
-            renewalDate.setMonth(renewalDate.getMonth() + 1);
-          }
-          while (renewalDate < new Date()) {
-            if ((profile.plan || plan) === 'yearly') {
-              renewalDate.setFullYear(renewalDate.getFullYear() + 1);
-            } else {
-              renewalDate.setMonth(renewalDate.getMonth() + 1);
-            }
-          }
-          document.getElementById('settings-renews').textContent =
-            months[renewalDate.getMonth()] + ' ' + renewalDate.getDate() + ', ' + renewalDate.getFullYear();
-
-          // License key
-          if (profile.id) {
-            const clean = profile.id.replace(/-/g, '');
-            document.getElementById('settings-license').textContent =
-              'NFAI-' + clean.substring(0, 4).toUpperCase() + '-' + clean.substring(4, 8).toUpperCase();
-          }
-
-          // Coverage
-          document.getElementById('settings-coverage').textContent = 'All websites · Real-time AI · 1 device';
-        }
-      } catch (err) {
-        // Supabase unavailable — leave defaults
-      }
-    }
+    showView('view-settings');
   });
 
   document.getElementById('btn-settings-back').addEventListener('click', () => {
@@ -434,31 +413,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── Initial load: check Supabase session ──
 
   async function initPopup() {
-    console.log('initPopup: sbClient available:', !!sbClient);
-
-    // Quick check: if already activated in local storage, skip everything
-    const localData = await new Promise((resolve) => {
-      chrome.storage.local.get(['activated', 'user'], resolve);
-    });
-    if (localData.activated === true) {
-      console.log('initPopup: showing view:', 'view-active (from local storage, fast path)');
-      loadActiveView();
-      return;
-    }
-
     if (!sbClient) {
-      chrome.storage.local.get(['activated', 'user', 'pollingEmail'], (data) => {
+      // Fallback to chrome.storage if Supabase not available
+      chrome.storage.local.get(['user', 'activated'], (data) => {
         if (data.activated === true) {
-          console.log('initPopup: showing view:', 'view-active (from storage fallback)');
           loadActiveView();
-        } else if (data.pollingEmail) {
-          paymentEmail = data.pollingEmail;
-          console.log('initPopup: showing view:', 'view-waiting (from storage fallback)');
-          console.log('initPopup: starting polling for:', paymentEmail);
+        } else if (data.user && data.activated === false) {
+          paymentEmail = data.user.email || '';
           showView('view-waiting');
-          startActivationPolling(paymentEmail);
-        } else {
-          console.log('initPopup: showing view:', 'view-welcome (no sbClient, no pollingEmail)');
+          startActivationPolling();
         }
       });
       return;
@@ -466,16 +429,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       const { data: { session } } = await sbClient.auth.getSession();
-      console.log('initPopup: session:', JSON.stringify(session?.user?.email));
 
       if (session) {
+        // User is signed in — check profile
         const { data: profile } = await sbClient
           .from('profiles')
           .select('first_name, activated, plan, email')
           .eq('id', session.user.id)
           .single();
-
-        console.log('initPopup: profile activated:', profile?.activated);
 
         if (profile) {
           chrome.storage.local.set({
@@ -486,40 +447,28 @@ document.addEventListener('DOMContentLoaded', () => {
           });
 
           if (profile.activated) {
-            console.log('initPopup: showing view:', 'view-active');
             loadActiveView();
           } else {
             paymentEmail = profile.email || session.user.email;
-            console.log('initPopup: showing view:', 'view-waiting');
-            console.log('initPopup: starting polling for:', paymentEmail);
             showView('view-waiting');
-            startActivationPolling(paymentEmail);
+            startActivationPolling();
           }
         } else {
           paymentEmail = session.user.email;
-          console.log('initPopup: showing view:', 'view-waiting (no profile)');
-          console.log('initPopup: starting polling for:', paymentEmail);
           showView('view-waiting');
-          startActivationPolling(paymentEmail);
+          startActivationPolling();
         }
-      } else {
-        console.log('initPopup: showing view:', 'view-welcome (no session)');
       }
-      // If no session: view-welcome is already showing
+      // If no session: view-welcome is already showing (has .active class in HTML)
     } catch (err) {
-      console.log('initPopup: error caught:', err.message);
-      chrome.storage.local.get(['activated', 'user', 'pollingEmail'], (data) => {
+      // Fallback to chrome.storage if Supabase is unreachable
+      chrome.storage.local.get(['user', 'activated'], (data) => {
         if (data.activated === true) {
-          console.log('initPopup: showing view:', 'view-active (error fallback)');
           loadActiveView();
-        } else if (data.pollingEmail) {
-          paymentEmail = data.pollingEmail;
-          console.log('initPopup: showing view:', 'view-waiting (error fallback)');
-          console.log('initPopup: starting polling for:', paymentEmail);
+        } else if (data.user && data.activated === false) {
+          paymentEmail = data.user.email || '';
           showView('view-waiting');
-          startActivationPolling(paymentEmail);
-        } else {
-          console.log('initPopup: showing view:', 'view-welcome (error fallback, no pollingEmail)');
+          startActivationPolling();
         }
       });
     }
