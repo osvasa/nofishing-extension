@@ -209,6 +209,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
 
+      // Send welcome email (fire and forget)
+      fetch('https://nofishing.ai/api/send-welcome', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, first_name: first }),
+      }).catch(() => {});
+
       paymentEmail = email;
       showView('view-plan');
     } catch (err) {
