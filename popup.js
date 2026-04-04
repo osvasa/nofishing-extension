@@ -341,6 +341,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── Initial load: check Supabase session ──
 
   async function initPopup() {
+    chrome.cookies.getAll({ url: 'https://nofishing.ai' }, (cookies) => {
+      console.log('All nofishing.ai cookies:', JSON.stringify(cookies));
+    });
+
     if (!sbClient) {
       // Fallback to chrome.storage if Supabase not available
       chrome.storage.local.get(['user', 'activated'], (data) => {
