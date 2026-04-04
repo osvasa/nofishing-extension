@@ -177,6 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
         firstName: first,
         selectedPlan: 'monthly',
         activated: false,
+        pollingEmail: email,
       });
 
       paymentEmail = email;
@@ -446,16 +447,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (!sbClient) {
-      chrome.storage.local.get(['user', 'activated'], (data) => {
+      chrome.storage.local.get(['activated', 'user', 'pollingEmail'], (data) => {
         if (data.activated === true) {
           console.log('initPopup: showing view:', 'view-active (from storage fallback)');
           loadActiveView();
-        } else if (data.user && data.activated === false) {
-          paymentEmail = data.user.email || '';
+        } else if (data.pollingEmail) {
+          paymentEmail = data.pollingEmail;
           console.log('initPopup: showing view:', 'view-waiting (from storage fallback)');
           console.log('initPopup: starting polling for:', paymentEmail);
           showView('view-waiting');
           startActivationPolling(paymentEmail);
+        } else {
+          console.log('initPopup: showing view:', 'view-welcome (no sbClient, no pollingEmail)');
         }
       });
       return;
@@ -505,16 +508,18 @@ document.addEventListener('DOMContentLoaded', () => {
       // If no session: view-welcome is already showing
     } catch (err) {
       console.log('initPopup: error caught:', err.message);
-      chrome.storage.local.get(['user', 'activated'], (data) => {
+      chrome.storage.local.get(['activated', 'user', 'pollingEmail'], (data) => {
         if (data.activated === true) {
           console.log('initPopup: showing view:', 'view-active (error fallback)');
           loadActiveView();
-        } else if (data.user && data.activated === false) {
-          paymentEmail = data.user.email || '';
+        } else if (data.pollingEmail) {
+          paymentEmail = data.pollingEmail;
           console.log('initPopup: showing view:', 'view-waiting (error fallback)');
           console.log('initPopup: starting polling for:', paymentEmail);
           showView('view-waiting');
           startActivationPolling(paymentEmail);
+        } else {
+          console.log('initPopup: showing view:', 'view-welcome (error fallback, no pollingEmail)');
         }
       });
     }
