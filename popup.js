@@ -181,8 +181,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       paymentEmail = email;
 
-      // Open payment page in new tab
-      chrome.tabs.create({ url: 'https://nofishing.ai/payment?email=' + encodeURIComponent(email) + '&plan=monthly' });
+      // Open plans page in new tab
+      chrome.tabs.create({ url: 'https://nofishing.ai/plans?email=' + encodeURIComponent(email) });
 
       // Show waiting view and start polling
       showView('view-waiting');
