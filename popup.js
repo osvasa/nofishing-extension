@@ -309,11 +309,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       try {
-        const { data: profile } = await sbClient
+        const { data: profile, error } = await sbClient
           .from('profiles')
           .select('first_name, activated, plan')
           .eq('email', pollingEmail)
           .single();
+
+        console.log('Polling result:', JSON.stringify(profile), 'Error:', JSON.stringify(error));
 
         if (profile && profile.activated) {
           clearInterval(pollingInterval);
