@@ -38,6 +38,11 @@
       "js": ["content.js"],
       "css": ["content.css"],
       "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://nofishing.ai/*"],
+      "js": ["session-bridge.js"],
+      "run_at": "document_idle"
     }
   ],
   "externally_connectable": {

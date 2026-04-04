@@ -383,3 +383,14 @@ chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => 
     sendResponse({ success: true });
   }
 });
+
+// ── Session bridge listener (from session-bridge.js on nofishing.ai) ──
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'SUPABASE_SESSION' && message.session) {
+    chrome.storage.local.set({
+      supabaseSession: message.session,
+      sessionEmail: message.session.user?.email,
+    });
+  }
+});

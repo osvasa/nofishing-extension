@@ -385,6 +385,46 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         // No local session — try to recover from nofishing.ai Supabase cookie
         await tryLoginFromCookie();
+
+        // If cookie didn't work, try session bridge from chrome.storage
+        const bridgeData = await new Promise((resolve) => {
+          chrome.storage.local.get(['supabaseSession'], resolve);
+        });
+
+        if (bridgeData.supabaseSession && bridgeData.supabaseSession.access_token) {
+          try {
+            await sbClient.auth.setSession({
+              access_token: bridgeData.supabaseSession.access_token,
+              refresh_token: bridgeData.supabaseSession.refresh_token,
+            });
+
+            const { data: { session: restoredSession } } = await sbClient.auth.getSession();
+            if (restoredSession) {
+              const { data: profile } = await sbClient
+                .from('profiles')
+                .select('first_name, activated, plan, email')
+                .eq('id', restoredSession.user.id)
+                .single();
+
+              if (profile) {
+                chrome.storage.local.set({
+                  user: { firstName: profile.first_name, email: profile.email },
+                  firstName: profile.first_name,
+                  selectedPlan: profile.plan || 'monthly',
+                  activated: profile.activated || false,
+                });
+
+                if (profile.activated) {
+                  loadActiveView();
+                } else {
+                  startActivationPolling(profile.email);
+                }
+              }
+            }
+          } catch (e) {
+            // Session bridge restore failed — stay on view-welcome
+          }
+        }
       }
     } catch (err) {
       // Fallback to chrome.storage if Supabase is unreachable
