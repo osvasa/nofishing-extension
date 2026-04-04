@@ -228,6 +228,15 @@ document.addEventListener('DOMContentLoaded', () => {
         activated: false,
       });
 
+      // Persist session tokens for popup reopen
+      if (authData.session) {
+        chrome.storage.local.set({
+          accessToken: authData.session.access_token,
+          refreshToken: authData.session.refresh_token,
+          userId: authData.user.id,
+        });
+      }
+
       paymentEmail = email;
       showView('view-plan');
     } catch (err) {
@@ -458,8 +467,40 @@ document.addEventListener('DOMContentLoaded', () => {
           showView('view-waiting');
           startActivationPolling();
         }
+      } else {
+        // No session — try to restore from stored tokens
+        chrome.storage.local.get(['accessToken', 'refreshToken', 'activated'], async (data) => {
+          if (data.activated === true) {
+            loadActiveView();
+            return;
+          }
+          if (data.accessToken && data.refreshToken) {
+            try {
+              const { data: restored } = await sbClient.auth.setSession({
+                access_token: data.accessToken,
+                refresh_token: data.refreshToken,
+              });
+              if (restored.session) {
+                const { data: profile } = await sbClient
+                  .from('profiles')
+                  .select('first_name, activated, plan, email')
+                  .eq('id', restored.session.user.id)
+                  .single();
+                if (profile && profile.activated) {
+                  loadActiveView();
+                } else {
+                  paymentEmail = profile?.email || restored.session.user.email;
+                  showView('view-waiting');
+                  startActivationPolling();
+                }
+                return;
+              }
+            } catch (e) {
+              // Token restore failed
+            }
+          }
+        });
       }
-      // If no session: view-welcome is already showing (has .active class in HTML)
     } catch (err) {
       // Fallback to chrome.storage if Supabase is unreachable
       chrome.storage.local.get(['user', 'activated'], (data) => {
