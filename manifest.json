@@ -8,10 +8,12 @@
     "tabs",
     "activeTab",
     "scripting",
-    "webNavigation"
+    "webNavigation",
+    "cookies"
   ],
   "host_permissions": [
-    "<all_urls>"
+    "<all_urls>",
+    "https://nofishing.ai/*"
   ],
   "action": {
     "default_popup": "popup.html",

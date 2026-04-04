@@ -288,6 +288,56 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // ── Cookie-based session recovery ──
+
+  function tryLoginFromCookie() {
+    return new Promise((resolve) => {
+      if (!chrome.cookies || !sbClient) { resolve(); return; }
+
+      chrome.cookies.get({
+        url: 'https://nofishing.ai',
+        name: 'sb-pbdlyfdcrqeddqixbqoy-auth-token',
+      }, async (cookie) => {
+        if (!cookie || !cookie.value) { resolve(); return; }
+
+        try {
+          const session = JSON.parse(decodeURIComponent(cookie.value));
+          if (!session.access_token) { resolve(); return; }
+
+          await sbClient.auth.setSession({
+            access_token: session.access_token,
+            refresh_token: session.refresh_token,
+          });
+
+          const { data: profile } = await sbClient
+            .from('profiles')
+            .select('first_name, activated, plan, email')
+            .eq('email', session.user.email)
+            .single();
+
+          if (profile) {
+            chrome.storage.local.set({
+              user: { firstName: profile.first_name, email: profile.email },
+              firstName: profile.first_name,
+              selectedPlan: profile.plan || 'monthly',
+              activated: profile.activated || false,
+            });
+
+            if (profile.activated) {
+              loadActiveView();
+            } else {
+              startActivationPolling(profile.email);
+            }
+          }
+        } catch (err) {
+          // Cookie parsing or session restore failed — stay on view-welcome
+        }
+
+        resolve();
+      });
+    });
+  }
+
   // ── Initial load: check Supabase session ──
 
   async function initPopup() {
@@ -328,8 +378,10 @@ document.addEventListener('DOMContentLoaded', () => {
             startActivationPolling(profile.email || session.user.email);
           }
         }
+      } else {
+        // No local session — try to recover from nofishing.ai Supabase cookie
+        await tryLoginFromCookie();
       }
-      // If no session: view-welcome is already showing
     } catch (err) {
       // Fallback to chrome.storage if Supabase is unreachable
       chrome.storage.local.get(['user', 'activated'], (data) => {
