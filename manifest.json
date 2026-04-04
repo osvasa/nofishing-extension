@@ -38,6 +38,9 @@
       "run_at": "document_idle"
     }
   ],
+  "externally_connectable": {
+    "matches": ["https://nofishing.ai/*", "https://*.nofishing.ai/*"]
+  },
   "web_accessible_resources": [
     {
       "resources": ["icons/fish-no-symbol-red.png", "icons/logo.png", "payment-success.html", "supabase.js"],

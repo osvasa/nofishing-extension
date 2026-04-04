@@ -371,3 +371,15 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return false;
   }
 });
+
+// ── External message listener (from nofishing.ai website) ──
+
+chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
+  if (message.type === 'ACTIVATE_SESSION') {
+    chrome.storage.local.set({
+      activated: true,
+      externalActivation: true,
+    });
+    sendResponse({ success: true });
+  }
+});
