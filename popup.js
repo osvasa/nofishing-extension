@@ -197,6 +197,8 @@ document.addEventListener('DOMContentLoaded', () => {
         options: { data: { first_name: first, last_name: last } },
       });
 
+      console.log('Session after signup:', authData.session ? 'EXISTS' : 'NULL');
+
       if (authError) {
         const banner = document.getElementById('signup-error-banner');
         banner.textContent = authError.message;
@@ -236,6 +238,10 @@ document.addEventListener('DOMContentLoaded', () => {
           userId: authData.user.id,
         });
       }
+
+      chrome.storage.local.get(['accessToken', 'refreshToken'], (data) => {
+        console.log('Stored tokens:', data.accessToken ? 'YES' : 'NO', data.refreshToken ? 'YES' : 'NO');
+      });
 
       paymentEmail = email;
       showView('view-plan');
