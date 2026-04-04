@@ -435,6 +435,16 @@ document.addEventListener('DOMContentLoaded', () => {
   async function initPopup() {
     console.log('initPopup: sbClient available:', !!sbClient);
 
+    // Quick check: if already activated in local storage, skip everything
+    const localData = await new Promise((resolve) => {
+      chrome.storage.local.get(['activated', 'user'], resolve);
+    });
+    if (localData.activated === true) {
+      console.log('initPopup: showing view:', 'view-active (from local storage, fast path)');
+      loadActiveView();
+      return;
+    }
+
     if (!sbClient) {
       chrome.storage.local.get(['user', 'activated'], (data) => {
         if (data.activated === true) {
