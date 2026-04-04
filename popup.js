@@ -295,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function startActivationPolling(email) {
     if (pollingInterval) clearInterval(pollingInterval);
-    if (!sbClient || !email) return;
+    if (!email) return;
 
     pollingEmail = email;
     let pollCount = 0;
@@ -309,22 +309,19 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       try {
-        const { data: profile, error } = await sbClient
-          .from('profiles')
-          .select('first_name, activated, plan')
-          .eq('email', pollingEmail)
-          .single();
+        const res = await fetch('https://nofishing.ai/api/check-activation?email=' + encodeURIComponent(pollingEmail));
+        const data = await res.json();
 
-        console.log('Polling result:', JSON.stringify(profile), 'Error:', JSON.stringify(error));
+        console.log('Polling result:', JSON.stringify(data));
 
-        if (profile && profile.activated) {
+        if (data.activated) {
           clearInterval(pollingInterval);
           pollingInterval = null;
 
           chrome.storage.local.set({
-            user: { firstName: profile.first_name, email: pollingEmail },
-            firstName: profile.first_name,
-            selectedPlan: profile.plan || 'monthly',
+            user: { firstName: data.first_name || '', email: pollingEmail },
+            firstName: data.first_name || '',
+            selectedPlan: data.plan || 'monthly',
             activated: true,
           });
 
