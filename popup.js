@@ -185,6 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
       chrome.tabs.create({ url: 'https://nofishing.ai/plans?email=' + encodeURIComponent(email) });
 
       // Show waiting view and start polling
+      console.log('Starting polling for email:', email);
       showView('view-waiting');
       startActivationPolling(email);
 
@@ -298,6 +299,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!email) return;
 
     pollingEmail = email;
+    console.log('Polling email value:', pollingEmail);
+    console.log('Fetching:', 'https://nofishing.ai/api/check-activation?email=' + encodeURIComponent(pollingEmail));
     let pollCount = 0;
 
     pollingInterval = setInterval(async () => {
