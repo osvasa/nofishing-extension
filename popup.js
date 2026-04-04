@@ -20,13 +20,21 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById(id).classList.add('active');
   }
 
+  // ── Stored email for payment ──
+
+  let paymentEmail = '';
+
   // ── Navigation buttons ──
 
-  document.getElementById('btn-get-protected').addEventListener('click', () => {
-    chrome.tabs.create({ url: 'https://nofishing.ai/signup' });
-  });
-
+  document.getElementById('btn-get-protected').addEventListener('click', () => showView('view-signup'));
   document.getElementById('btn-go-login').addEventListener('click', () => showView('view-login'));
+  document.getElementById('btn-signup-go-login').addEventListener('click', () => showView('view-login'));
+  document.getElementById('btn-login-go-signup').addEventListener('click', () => showView('view-signup'));
+
+  document.getElementById('btn-open-payment').addEventListener('click', () => {
+    const email = paymentEmail || '';
+    chrome.tabs.create({ url: 'https://nofishing.ai/payment?email=' + encodeURIComponent(email) + '&plan=monthly' });
+  });
 
   // ── Helpers ──
 
@@ -42,12 +50,152 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById(errId).classList.remove('show');
   }
 
+  // Clear errors on typing — signup fields
+  ['s-first', 's-last', 's-email', 's-confirm-email', 's-password'].forEach((id) => {
+    document.getElementById(id).addEventListener('input', () => {
+      clearFieldError(id, 'err-' + id);
+      document.getElementById('signup-error-banner').classList.remove('show');
+    });
+  });
+
+  document.getElementById('s-terms').addEventListener('change', () => {
+    document.getElementById('err-s-terms').classList.remove('show');
+  });
+
   // Clear errors on typing — login fields
   ['l-email', 'l-password'].forEach((id) => {
     document.getElementById(id).addEventListener('input', () => {
       clearFieldError(id, 'err-' + id);
       document.getElementById('login-error-banner').classList.remove('show');
     });
+  });
+
+  // ── Signup form ──
+
+  document.getElementById('signup-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    ['s-first', 's-last', 's-email', 's-confirm-email', 's-password'].forEach((id) => {
+      clearFieldError(id, 'err-' + id);
+    });
+    document.getElementById('err-s-terms').classList.remove('show');
+    document.getElementById('signup-error-banner').classList.remove('show');
+
+    const first = document.getElementById('s-first').value.trim();
+    const last = document.getElementById('s-last').value.trim();
+    const email = document.getElementById('s-email').value.trim();
+    const confirmEmail = document.getElementById('s-confirm-email').value.trim();
+    const password = document.getElementById('s-password').value;
+    const terms = document.getElementById('s-terms').checked;
+
+    let valid = true;
+
+    if (!first) { showFieldError('s-first', 'err-s-first', 'First name is required'); valid = false; }
+    if (!last) { showFieldError('s-last', 'err-s-last', 'Last name is required'); valid = false; }
+    if (!email) {
+      showFieldError('s-email', 'err-s-email', 'Email is required'); valid = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showFieldError('s-email', 'err-s-email', 'Enter a valid email'); valid = false;
+    }
+    if (!confirmEmail) {
+      showFieldError('s-confirm-email', 'err-s-confirm-email', 'Please confirm your email'); valid = false;
+    } else if (confirmEmail !== email) {
+      showFieldError('s-confirm-email', 'err-s-confirm-email', 'Emails do not match'); valid = false;
+    }
+    if (!password) {
+      showFieldError('s-password', 'err-s-password', 'Password is required'); valid = false;
+    } else if (password.length < 6) {
+      showFieldError('s-password', 'err-s-password', 'Must be at least 6 characters'); valid = false;
+    }
+    if (!terms) {
+      document.getElementById('err-s-terms').classList.add('show');
+      valid = false;
+    }
+
+    if (!valid) return;
+
+    const btn = document.getElementById('btn-signup-submit');
+    btn.disabled = true;
+    btn.textContent = 'Creating account...';
+
+    if (!sbClient) {
+      const banner = document.getElementById('signup-error-banner');
+      banner.textContent = 'Service unavailable. Please try again.';
+      banner.classList.add('show');
+      btn.disabled = false;
+      btn.textContent = 'Continue';
+      return;
+    }
+
+    try {
+      const { data: authData, error: authError } = await sbClient.auth.signUp({
+        email,
+        password,
+        options: { data: { first_name: first, last_name: last } },
+      });
+
+      if (authError) {
+        const banner = document.getElementById('signup-error-banner');
+        banner.textContent = authError.message;
+        banner.classList.add('show');
+        btn.disabled = false;
+        btn.textContent = 'Continue';
+        return;
+      }
+
+      // Create profile via serverless function
+      try {
+        await fetch('https://nofishing.ai/api/create-profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: authData.user.id,
+            first_name: first,
+            last_name: last,
+            email: email,
+            plan: 'monthly',
+          }),
+        });
+      } catch (profileErr) {
+        console.error('Profile creation failed:', profileErr);
+      }
+
+      // Send welcome email
+      try {
+        await fetch('https://nofishing.ai/api/send-welcome', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email, first_name: first }),
+        });
+      } catch (welcomeErr) {
+        console.error('Welcome email failed:', welcomeErr);
+      }
+
+      // Store user data
+      chrome.storage.local.set({
+        user: { firstName: first, lastName: last, email: email },
+        firstName: first,
+        selectedPlan: 'monthly',
+        activated: false,
+      });
+
+      paymentEmail = email;
+
+      // Open payment page in new tab
+      chrome.tabs.create({ url: 'https://nofishing.ai/payment?email=' + encodeURIComponent(email) + '&plan=monthly' });
+
+      // Show waiting view and start polling
+      showView('view-waiting');
+      startActivationPolling(email);
+
+    } catch (err) {
+      const banner = document.getElementById('signup-error-banner');
+      banner.textContent = 'Something went wrong. Please try again.';
+      banner.classList.add('show');
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Continue';
   });
 
   // ── Login form ──
@@ -88,7 +236,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
-      // Sign in with Supabase Auth
       const { data: authData, error: authError } = await sbClient.auth.signInWithPassword({
         email: email,
         password: password,
@@ -121,20 +268,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (profile.activated) {
           loadActiveView();
         } else {
-          btn.disabled = false;
-          btn.textContent = 'Log in';
-          const banner = document.getElementById('login-error-banner');
-          banner.textContent = 'Complete your payment at nofishing.ai to activate protection.';
-          banner.classList.add('show');
-          return;
+          paymentEmail = email;
+          showView('view-waiting');
+          startActivationPolling(email);
         }
       } else {
-        btn.disabled = false;
-        btn.textContent = 'Log in';
-        const banner = document.getElementById('login-error-banner');
-        banner.textContent = 'Complete your payment at nofishing.ai to activate protection.';
-        banner.classList.add('show');
-        return;
+        paymentEmail = email;
+        showView('view-waiting');
+        startActivationPolling(email);
       }
 
     } catch (err) {
@@ -250,7 +391,6 @@ document.addEventListener('DOMContentLoaded', () => {
           } else {
             renewalDate.setMonth(renewalDate.getMonth() + 1);
           }
-          // Advance renewal past today
           while (renewalDate < new Date()) {
             if ((profile.plan || plan) === 'yearly') {
               renewalDate.setFullYear(renewalDate.getFullYear() + 1);
@@ -288,126 +428,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // ── Cookie-based session recovery ──
-
-  function tryLoginFromCookie() {
-    return new Promise((resolve) => {
-      if (!chrome.cookies || !sbClient) { resolve(); return; }
-
-      chrome.cookies.get({
-        url: 'https://nofishing.ai',
-        name: 'sb-pbdlyfdcrqeddqixbqoy-auth-token',
-      }, async (cookie) => {
-        if (!cookie || !cookie.value) { resolve(); return; }
-
-        try {
-          const session = JSON.parse(decodeURIComponent(cookie.value));
-          if (!session.access_token) { resolve(); return; }
-
-          await sbClient.auth.setSession({
-            access_token: session.access_token,
-            refresh_token: session.refresh_token,
-          });
-
-          const { data: profile } = await sbClient
-            .from('profiles')
-            .select('first_name, activated, plan, email')
-            .eq('email', session.user.email)
-            .single();
-
-          if (profile) {
-            chrome.storage.local.set({
-              user: { firstName: profile.first_name, email: profile.email },
-              firstName: profile.first_name,
-              selectedPlan: profile.plan || 'monthly',
-              activated: profile.activated || false,
-            });
-
-            if (profile.activated) {
-              loadActiveView();
-            } else {
-              startActivationPolling(profile.email);
-            }
-          }
-        } catch (err) {
-          // Cookie parsing or session restore failed — stay on view-welcome
-        }
-
-        resolve();
-      });
-    });
-  }
-
-  // ── Session restore helpers ──
-
-  async function restoreFromSession(session) {
-    try {
-      await sbClient.auth.setSession({
-        access_token: session.access_token,
-        refresh_token: session.refresh_token,
-      });
-
-      const { data: { session: restoredSession } } = await sbClient.auth.getSession();
-      if (restoredSession) {
-        const { data: profile } = await sbClient
-          .from('profiles')
-          .select('first_name, activated, plan, email')
-          .eq('id', restoredSession.user.id)
-          .single();
-
-        if (profile) {
-          chrome.storage.local.set({
-            user: { firstName: profile.first_name, email: profile.email },
-            firstName: profile.first_name,
-            selectedPlan: profile.plan || 'monthly',
-            activated: profile.activated || false,
-          });
-
-          if (profile.activated) {
-            loadActiveView();
-          } else {
-            startActivationPolling(profile.email);
-          }
-        }
-      }
-    } catch (e) {
-      // Session restore failed — stay on view-welcome
-    }
-  }
-
-  function queryNofishingTabs() {
-    return new Promise((resolve) => {
-      chrome.tabs.query({ url: 'https://nofishing.ai/*' }, (tabs) => {
-        if (tabs.length > 0) {
-          chrome.tabs.sendMessage(tabs[0].id, { type: 'REQUEST_SESSION' }, async (response) => {
-            if (chrome.runtime.lastError || !response || !response.session || !response.session.access_token) {
-              resolve();
-              return;
-            }
-            await restoreFromSession(response.session);
-            resolve();
-          });
-        } else {
-          resolve();
-        }
-      });
-    });
-  }
-
   // ── Initial load: check Supabase session ──
 
   async function initPopup() {
-    chrome.cookies.getAll({ url: 'https://nofishing.ai' }, (cookies) => {
-      console.log('All nofishing.ai cookies:', JSON.stringify(cookies));
-    });
-
     if (!sbClient) {
-      // Fallback to chrome.storage if Supabase not available
       chrome.storage.local.get(['user', 'activated'], (data) => {
         if (data.activated === true) {
           loadActiveView();
+        } else if (data.user && data.activated === false) {
+          paymentEmail = data.user.email || '';
+          showView('view-waiting');
+          startActivationPolling(paymentEmail);
         }
-        // Otherwise view-welcome is already showing
       });
       return;
     }
@@ -416,7 +448,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const { data: { session } } = await sbClient.auth.getSession();
 
       if (session) {
-        // User is signed in — check profile
         const { data: profile } = await sbClient
           .from('profiles')
           .select('first_name, activated, plan, email')
@@ -434,31 +465,25 @@ document.addEventListener('DOMContentLoaded', () => {
           if (profile.activated) {
             loadActiveView();
           } else {
-            // Not activated — stay on view-welcome, poll in background
-            startActivationPolling(profile.email || session.user.email);
+            paymentEmail = profile.email || session.user.email;
+            showView('view-waiting');
+            startActivationPolling(paymentEmail);
           }
-        }
-      } else {
-        // No local session — try to recover from nofishing.ai Supabase cookie
-        await tryLoginFromCookie();
-
-        // If cookie didn't work, check for stored session from bridge
-        const bridgeData = await new Promise((resolve) => {
-          chrome.storage.local.get(['supabaseSession'], resolve);
-        });
-
-        if (bridgeData.supabaseSession && bridgeData.supabaseSession.access_token) {
-          await restoreFromSession(bridgeData.supabaseSession);
         } else {
-          // Last resort — actively query open nofishing.ai tabs
-          await queryNofishingTabs();
+          paymentEmail = session.user.email;
+          showView('view-waiting');
+          startActivationPolling(paymentEmail);
         }
       }
+      // If no session: view-welcome is already showing
     } catch (err) {
-      // Fallback to chrome.storage if Supabase is unreachable
       chrome.storage.local.get(['user', 'activated'], (data) => {
         if (data.activated === true) {
           loadActiveView();
+        } else if (data.user && data.activated === false) {
+          paymentEmail = data.user.email || '';
+          showView('view-waiting');
+          startActivationPolling(paymentEmail);
         }
       });
     }

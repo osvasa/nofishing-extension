@@ -102,35 +102,28 @@ body {
   color: rgba(255,255,255,0.5);
 }
 
-/* ── VIEW: Login ── */
-.login-body {
-  padding: 24px 20px;
+/* ── VIEW: Signup ── */
+.signup-body {
+  padding: 20px;
   text-align: center;
   background: #EC220C;
 }
 
-.login-fish {
-  width: 100px;
+.signup-fish {
+  width: 80px;
   height: auto;
   display: block;
-  margin: 0 auto 16px;
+  margin: 0 auto 12px;
 }
 
-.login-title {
-  font-size: 24px;
+.signup-title {
+  font-size: 20px;
   font-weight: 900;
   color: #ffffff;
-  margin-bottom: 8px;
+  margin-bottom: 16px;
 }
 
-.login-sub {
-  font-size: 13px;
-  color: rgba(255,255,255,0.7);
-  line-height: 1.6;
-  margin-bottom: 24px;
-}
-
-/* ── Auth card ── */
+/* ── Auth card (shared) ── */
 .auth-card {
   background: #1a1a1a;
   border-radius: 12px;
@@ -145,6 +138,13 @@ body {
   text-align: center;
   margin-bottom: 20px;
 }
+
+.auth-row {
+  display: flex;
+  gap: 10px;
+}
+
+.auth-row .auth-field { flex: 1; }
 
 .auth-field {
   margin-bottom: 14px;
@@ -185,6 +185,57 @@ body {
 
 .field-error.show { display: block; }
 
+.auth-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.auth-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  flex-shrink: 0;
+  accent-color: #EC220C;
+}
+
+.auth-checkbox label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.auth-checkbox label a {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.auth-checkbox-error {
+  font-size: 10px;
+  color: #EC220C;
+  margin-top: -12px;
+  margin-bottom: 14px;
+  display: none;
+}
+
+.auth-checkbox-error.show { display: block; }
+
+.error-banner {
+  font-size: 11px;
+  color: #EC220C;
+  background: rgba(236,34,12,0.06);
+  border: 1px solid rgba(236,34,12,0.15);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  text-align: center;
+  display: none;
+}
+
+.error-banner.show { display: block; }
+
 .login-error-banner {
   font-size: 11px;
   color: #EC220C;
@@ -224,16 +275,100 @@ body {
   margin-top: 16px;
 }
 
-.auth-switch a {
+.auth-switch button {
+  background: none;
+  border: none;
   color: #ffffff;
   text-decoration: underline;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
   font-weight: 600;
+  cursor: pointer;
+}
+
+/* ── VIEW: Login ── */
+.login-body {
+  padding: 24px 20px;
+  text-align: center;
+  background: #EC220C;
+}
+
+.login-fish {
+  width: 100px;
+  height: auto;
+  display: block;
+  margin: 0 auto 16px;
+}
+
+.login-title {
+  font-size: 24px;
+  font-weight: 900;
+  color: #ffffff;
+  margin-bottom: 8px;
+}
+
+.login-sub {
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.6;
+  margin-bottom: 24px;
 }
 
 .login-footer {
   font-size: 10px;
   color: rgba(255,255,255,0.5);
   text-align: center;
+}
+
+/* ── VIEW: Waiting ── */
+.waiting-body {
+  padding: 32px 20px;
+  text-align: center;
+  background: #EC220C;
+}
+
+.waiting-fish {
+  width: 80px;
+  height: auto;
+  display: block;
+  margin: 0 auto 16px;
+}
+
+.waiting-title {
+  font-size: 22px;
+  font-weight: 900;
+  color: #ffffff;
+  margin-bottom: 10px;
+}
+
+.waiting-sub {
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.waiting-btn {
+  display: block;
+  width: 100%;
+  padding: 14px 16px;
+  background: #ffffff;
+  color: #111111;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.waiting-btn:hover { opacity: 0.9; }
+
+.waiting-footer {
+  font-size: 10px;
+  color: rgba(255,255,255,0.5);
+  margin-top: 24px;
 }
 
 /* ── VIEW: Active / Protection Status ── */
@@ -498,6 +633,81 @@ body {
 </div>
 
 <!-- ══════════════════════════════════════════ -->
+<!-- VIEW: Signup                              -->
+<!-- ══════════════════════════════════════════ -->
+<div id="view-signup" class="view">
+  <div class="popup-header">
+    <img src="icons/logo.png" alt="NøFishing AI" style="height:24px;width:auto;"/>
+  </div>
+  <div class="signup-body">
+    <img src="icons/nofishing-ai-bubbles.gif" alt="NøFishing AI" class="signup-fish"/>
+    <div class="signup-title">Create your account</div>
+
+    <div class="auth-card">
+      <form id="signup-form" novalidate>
+        <div class="auth-row">
+          <div class="auth-field">
+            <label for="s-first">First Name</label>
+            <input id="s-first" type="text" placeholder="Jane"/>
+            <div class="field-error" id="err-s-first"></div>
+          </div>
+          <div class="auth-field">
+            <label for="s-last">Last Name</label>
+            <input id="s-last" type="text" placeholder="Smith"/>
+            <div class="field-error" id="err-s-last"></div>
+          </div>
+        </div>
+
+        <div class="auth-field">
+          <label for="s-email">Email</label>
+          <input id="s-email" type="email" placeholder="you@example.com"/>
+          <div class="field-error" id="err-s-email"></div>
+        </div>
+
+        <div class="auth-field">
+          <label for="s-confirm-email">Confirm Email</label>
+          <input id="s-confirm-email" type="email" placeholder="Confirm your email"/>
+          <div class="field-error" id="err-s-confirm-email"></div>
+        </div>
+
+        <div class="auth-field">
+          <label for="s-password">Password</label>
+          <input id="s-password" type="password" placeholder="6+ characters"/>
+          <div class="field-error" id="err-s-password"></div>
+        </div>
+
+        <div class="auth-checkbox">
+          <input type="checkbox" id="s-terms"/>
+          <label for="s-terms">I agree to the <a href="https://nofishing.ai/terms" target="_blank">Terms of Use</a> and <a href="https://nofishing.ai/privacy" target="_blank">Privacy Policy</a></label>
+        </div>
+        <div class="auth-checkbox-error" id="err-s-terms">You must agree to the terms</div>
+
+        <div class="error-banner" id="signup-error-banner"></div>
+        <button type="submit" class="auth-btn" id="btn-signup-submit">Continue</button>
+      </form>
+
+      <div class="auth-switch">Already have an account? <button id="btn-signup-go-login">Log in</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- VIEW: Waiting for Payment                 -->
+<!-- ══════════════════════════════════════════ -->
+<div id="view-waiting" class="view">
+  <div class="popup-header">
+    <img src="icons/logo.png" alt="NøFishing AI" style="height:24px;width:auto;"/>
+  </div>
+  <div class="waiting-body">
+    <img src="icons/nofishing-ai-bubbles.gif" alt="NøFishing AI" class="waiting-fish"/>
+    <div class="waiting-title">Complete your payment</div>
+    <p class="waiting-sub">Choose your plan and pay in the browser tab to activate your protection.</p>
+    <button class="waiting-btn" id="btn-open-payment">Open Payment Page</button>
+    <div class="waiting-footer">NøFishing AI v1.0.0</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
 <!-- VIEW: Login                               -->
 <!-- ══════════════════════════════════════════ -->
 <div id="view-login" class="view">
@@ -530,7 +740,7 @@ body {
         <button type="submit" class="auth-btn" id="btn-login-submit">Log in</button>
       </form>
 
-      <div class="auth-switch">Don't have an account? <a href="https://nofishing.ai" target="_blank">Get protected</a></div>
+      <div class="auth-switch">Don't have an account? <button id="btn-login-go-signup">Get protected</button></div>
     </div>
 
     <div class="login-footer">NøFishing AI v1.0.0</div>
