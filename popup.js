@@ -433,12 +433,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── Initial load: check Supabase session ──
 
   async function initPopup() {
+    console.log('initPopup: sbClient available:', !!sbClient);
+
     if (!sbClient) {
       chrome.storage.local.get(['user', 'activated'], (data) => {
         if (data.activated === true) {
+          console.log('initPopup: showing view:', 'view-active (from storage fallback)');
           loadActiveView();
         } else if (data.user && data.activated === false) {
           paymentEmail = data.user.email || '';
+          console.log('initPopup: showing view:', 'view-waiting (from storage fallback)');
+          console.log('initPopup: starting polling for:', paymentEmail);
           showView('view-waiting');
           startActivationPolling(paymentEmail);
         }
@@ -448,6 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       const { data: { session } } = await sbClient.auth.getSession();
+      console.log('initPopup: session:', JSON.stringify(session?.user?.email));
 
       if (session) {
         const { data: profile } = await sbClient
@@ -455,6 +461,8 @@ document.addEventListener('DOMContentLoaded', () => {
           .select('first_name, activated, plan, email')
           .eq('id', session.user.id)
           .single();
+
+        console.log('initPopup: profile activated:', profile?.activated);
 
         if (profile) {
           chrome.storage.local.set({
@@ -465,25 +473,36 @@ document.addEventListener('DOMContentLoaded', () => {
           });
 
           if (profile.activated) {
+            console.log('initPopup: showing view:', 'view-active');
             loadActiveView();
           } else {
             paymentEmail = profile.email || session.user.email;
+            console.log('initPopup: showing view:', 'view-waiting');
+            console.log('initPopup: starting polling for:', paymentEmail);
             showView('view-waiting');
             startActivationPolling(paymentEmail);
           }
         } else {
           paymentEmail = session.user.email;
+          console.log('initPopup: showing view:', 'view-waiting (no profile)');
+          console.log('initPopup: starting polling for:', paymentEmail);
           showView('view-waiting');
           startActivationPolling(paymentEmail);
         }
+      } else {
+        console.log('initPopup: showing view:', 'view-welcome (no session)');
       }
       // If no session: view-welcome is already showing
     } catch (err) {
+      console.log('initPopup: error caught:', err.message);
       chrome.storage.local.get(['user', 'activated'], (data) => {
         if (data.activated === true) {
+          console.log('initPopup: showing view:', 'view-active (error fallback)');
           loadActiveView();
         } else if (data.user && data.activated === false) {
           paymentEmail = data.user.email || '';
+          console.log('initPopup: showing view:', 'view-waiting (error fallback)');
+          console.log('initPopup: starting polling for:', paymentEmail);
           showView('view-waiting');
           startActivationPolling(paymentEmail);
         }
