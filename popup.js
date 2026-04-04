@@ -7,7 +7,7 @@ let sbClient = null;
 
 document.addEventListener('DOMContentLoaded', () => {
 
-  // Initialize Supabase (CDN may not be loaded yet in some cases)
+  // Initialize Supabase
   if (window.supabase && window.supabase.createClient) {
     sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   }
@@ -28,14 +28,14 @@ document.addEventListener('DOMContentLoaded', () => {
   function selectPlan(plan) {
     if (plan === 'monthly') {
       btnMonthly.classList.add('selected');
-      btnMonthly.innerHTML = '<span style="color:#EC220C;font-weight:700;">✓</span> Monthly';
+      btnMonthly.textContent = '✓ Monthly';
       btnYearly.classList.remove('selected');
-      btnYearly.textContent = 'Select';
+      btnYearly.textContent = 'Select Yearly';
     } else {
       btnYearly.classList.add('selected');
-      btnYearly.innerHTML = '<span style="color:#EC220C;font-weight:700;">✓</span> Yearly';
+      btnYearly.textContent = '✓ Yearly';
       btnMonthly.classList.remove('selected');
-      btnMonthly.textContent = 'Select';
+      btnMonthly.textContent = 'Select Monthly';
     }
     chrome.storage.local.set({ selectedPlan: plan }, () => {
       setTimeout(() => {
@@ -57,12 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Helpers ──
 
-  function escapeHtml(str) {
-    const el = document.createElement('span');
-    el.textContent = str;
-    return el.innerHTML;
-  }
-
   function showFieldError(inputId, errId, message) {
     document.getElementById(inputId).classList.add('input-error');
     const err = document.getElementById(errId);
@@ -76,13 +70,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Clear errors on typing — signup fields
-  ['s-first', 's-last', 's-email', 's-password'].forEach((id) => {
+  ['s-first', 's-last', 's-email', 's-confirm-email', 's-password'].forEach((id) => {
     document.getElementById(id).addEventListener('input', () => {
       clearFieldError(id, 'err-' + id);
+      document.getElementById('signup-error-banner').classList.remove('show');
     });
   });
 
-  // Clear terms error when checkbox changes
   document.getElementById('s-terms').addEventListener('change', () => {
     document.getElementById('err-s-terms').classList.remove('show');
   });
@@ -107,36 +101,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // "Open Payment Page" button on waiting screen
   document.getElementById('btn-open-payment').addEventListener('click', () => {
     openPaymentTab();
-  });
-
-  // Reset button for testing
-  document.getElementById('btn-reset-test').addEventListener('click', async () => {
-    if (sbClient) await sbClient.auth.signOut();
-    chrome.storage.local.clear(() => {
-      showView('view-welcome');
-    });
-  });
-
-  // Preview active screen for testing
-  document.getElementById('btn-preview-active').addEventListener('click', () => {
-    loadActiveView();
-  });
-
-  // Preview protected mode from login screen
-  document.getElementById('btn-preview-protected').addEventListener('click', () => {
-    chrome.storage.local.set({
-      activated: true,
-      firstName: 'Test',
-      selectedPlan: 'monthly',
-      user: { firstName: 'Test', email: 'test@example.com' },
-      sitesVisited: 247,
-      threatsBlocked: 3
-    }, () => {
-      loadActiveView();
-    });
   });
 
   // ── Signup form ──
@@ -144,15 +110,16 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('signup-form').addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    // Clear all errors
-    ['s-first', 's-last', 's-email', 's-password'].forEach((id) => {
+    ['s-first', 's-last', 's-email', 's-confirm-email', 's-password'].forEach((id) => {
       clearFieldError(id, 'err-' + id);
     });
     document.getElementById('err-s-terms').classList.remove('show');
+    document.getElementById('signup-error-banner').classList.remove('show');
 
     const first = document.getElementById('s-first').value.trim();
     const last = document.getElementById('s-last').value.trim();
     const email = document.getElementById('s-email').value.trim();
+    const confirmEmail = document.getElementById('s-confirm-email').value.trim();
     const password = document.getElementById('s-password').value;
     const terms = document.getElementById('s-terms').checked;
 
@@ -164,6 +131,11 @@ document.addEventListener('DOMContentLoaded', () => {
       showFieldError('s-email', 'err-s-email', 'Email is required'); valid = false;
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       showFieldError('s-email', 'err-s-email', 'Enter a valid email'); valid = false;
+    }
+    if (!confirmEmail) {
+      showFieldError('s-confirm-email', 'err-s-confirm-email', 'Please confirm your email'); valid = false;
+    } else if (confirmEmail !== email) {
+      showFieldError('s-confirm-email', 'err-s-confirm-email', 'Emails do not match'); valid = false;
     }
     if (!password) {
       showFieldError('s-password', 'err-s-password', 'Password is required'); valid = false;
@@ -196,8 +168,6 @@ document.addEventListener('DOMContentLoaded', () => {
         password,
         options: { data: { first_name: first, last_name: last } },
       });
-
-      console.log('Session after signup:', authData.session ? 'EXISTS' : 'NULL');
 
       if (authError) {
         const banner = document.getElementById('signup-error-banner');
@@ -238,10 +208,6 @@ document.addEventListener('DOMContentLoaded', () => {
           userId: authData.user.id,
         });
       }
-
-      chrome.storage.local.get(['accessToken', 'refreshToken'], (data) => {
-        console.log('Stored tokens:', data.accessToken ? 'YES' : 'NO', data.refreshToken ? 'YES' : 'NO');
-      });
 
       paymentEmail = email;
       showView('view-plan');
@@ -293,7 +259,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
-      // Sign in with Supabase Auth
       const { data: authData, error: authError } = await sbClient.auth.signInWithPassword({
         email: email,
         password: password,
@@ -306,6 +271,15 @@ document.addEventListener('DOMContentLoaded', () => {
         banner.textContent = authError.message;
         banner.classList.add('show');
         return;
+      }
+
+      // Persist session tokens
+      if (authData.session) {
+        chrome.storage.local.set({
+          accessToken: authData.session.access_token,
+          refreshToken: authData.session.refresh_token,
+          userId: authData.user.id,
+        });
       }
 
       // Check profiles table for activated status
@@ -352,7 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function startActivationPolling() {
     if (pollingInterval) clearInterval(pollingInterval);
-    if (!sbClient || !paymentEmail) return;
+    if (!paymentEmail) return;
 
     let pollCount = 0;
 
@@ -365,20 +339,17 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       try {
-        const { data: profile } = await sbClient
-          .from('profiles')
-          .select('first_name, activated, plan')
-          .eq('email', paymentEmail)
-          .single();
+        const res = await fetch('https://nofishing.ai/api/check-activation?email=' + encodeURIComponent(paymentEmail));
+        const data = await res.json();
 
-        if (profile && profile.activated) {
+        if (data.activated) {
           clearInterval(pollingInterval);
           pollingInterval = null;
 
           chrome.storage.local.set({
-            user: { firstName: profile.first_name, email: paymentEmail },
-            firstName: profile.first_name,
-            selectedPlan: profile.plan || 'monthly',
+            user: { firstName: data.first_name || '', email: paymentEmail },
+            firstName: data.first_name || '',
+            selectedPlan: data.plan || 'monthly',
             activated: true,
           });
 
@@ -395,7 +366,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function loadActiveView() {
     showView('view-active');
 
-    // Load stats from storage
     chrome.storage.local.get(['sitesVisited', 'threatsBlocked'], (data) => {
       document.getElementById('stat-sites').textContent = data.sitesVisited || 0;
       document.getElementById('stat-threats').textContent = data.threatsBlocked || 0;
@@ -404,14 +374,74 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Settings view ──
 
-  document.getElementById('btn-open-settings').addEventListener('click', () => {
-    // Populate settings with stored data
-    chrome.storage.local.get(['user', 'selectedPlan'], (data) => {
-      document.getElementById('settings-email').textContent = (data.user && data.user.email) || '—';
-      const plan = data.selectedPlan || 'monthly';
-      document.getElementById('settings-plan').textContent = plan === 'yearly' ? 'Yearly Protection' : 'Monthly Protection';
-    });
+  document.getElementById('btn-open-settings').addEventListener('click', async () => {
     showView('view-settings');
+
+    const data = await new Promise((resolve) => {
+      chrome.storage.local.get(['user', 'selectedPlan', 'sitesVisited', 'threatsBlocked'], resolve);
+    });
+
+    const email = (data.user && data.user.email) || '—';
+    const plan = data.selectedPlan || 'monthly';
+
+    document.getElementById('settings-email').textContent = email;
+    document.getElementById('settings-plan').textContent = plan === 'yearly' ? 'Yearly Protection $49.99/yr' : 'Monthly Protection $4.99/mo';
+    document.getElementById('settings-sites').textContent = data.sitesVisited || 0;
+    document.getElementById('settings-threats').textContent = data.threatsBlocked || 0;
+
+    if (sbClient && email !== '—') {
+      try {
+        const { data: profile } = await sbClient
+          .from('profiles')
+          .select('id, created_at, plan, next_renewal')
+          .eq('email', email)
+          .single();
+
+        if (profile && profile.created_at) {
+          const createdDate = new Date(profile.created_at);
+          const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+          document.getElementById('settings-member-since').textContent =
+            months[createdDate.getMonth()] + ' ' + createdDate.getDate() + ', ' + createdDate.getFullYear();
+
+          const days = Math.max(1, Math.floor((Date.now() - createdDate.getTime()) / 86400000) + 1);
+          document.getElementById('settings-days').textContent = days;
+
+          // Renewal date
+          if (profile.next_renewal) {
+            const renewalDate = new Date(profile.next_renewal);
+            document.getElementById('settings-renews').textContent =
+              months[renewalDate.getMonth()] + ' ' + renewalDate.getDate() + ', ' + renewalDate.getFullYear();
+          } else {
+            const renewalDate = new Date(createdDate);
+            if ((profile.plan || plan) === 'yearly') {
+              renewalDate.setFullYear(renewalDate.getFullYear() + 1);
+            } else {
+              renewalDate.setMonth(renewalDate.getMonth() + 1);
+            }
+            while (renewalDate < new Date()) {
+              if ((profile.plan || plan) === 'yearly') {
+                renewalDate.setFullYear(renewalDate.getFullYear() + 1);
+              } else {
+                renewalDate.setMonth(renewalDate.getMonth() + 1);
+              }
+            }
+            document.getElementById('settings-renews').textContent =
+              months[renewalDate.getMonth()] + ' ' + renewalDate.getDate() + ', ' + renewalDate.getFullYear();
+          }
+
+          if (profile.id) {
+            const clean = profile.id.replace(/-/g, '');
+            document.getElementById('settings-license').textContent =
+              'NFAI-' + clean.substring(0, 4).toUpperCase() + '-' + clean.substring(4, 8).toUpperCase();
+          }
+
+          document.getElementById('settings-coverage').textContent = 'All websites · Real-time AI · 1 device';
+        }
+      } catch (err) {
+        // Supabase unavailable — leave defaults
+      }
+    }
   });
 
   document.getElementById('btn-settings-back').addEventListener('click', () => {
@@ -428,17 +458,22 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── Initial load: check Supabase session ──
 
   async function initPopup() {
+    // Fast path: check local storage first
+    const localData = await new Promise((resolve) => {
+      chrome.storage.local.get(['activated', 'user', 'paymentEmail'], resolve);
+    });
+
+    if (localData.activated === true) {
+      loadActiveView();
+      return;
+    }
+
     if (!sbClient) {
-      // Fallback to chrome.storage if Supabase not available
-      chrome.storage.local.get(['user', 'activated'], (data) => {
-        if (data.activated === true) {
-          loadActiveView();
-        } else if (data.user && data.activated === false) {
-          paymentEmail = data.user.email || '';
-          showView('view-waiting');
-          startActivationPolling();
-        }
-      });
+      if (localData.user && localData.user.email) {
+        paymentEmail = localData.user.email;
+        showView('view-waiting');
+        startActivationPolling();
+      }
       return;
     }
 
@@ -446,7 +481,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const { data: { session } } = await sbClient.auth.getSession();
 
       if (session) {
-        // User is signed in — check profile
         const { data: profile } = await sbClient
           .from('profiles')
           .select('first_name, activated, plan, email')
@@ -475,49 +509,50 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } else {
         // No session — try to restore from stored tokens
-        chrome.storage.local.get(['accessToken', 'refreshToken', 'activated'], async (data) => {
-          if (data.activated === true) {
-            loadActiveView();
-            return;
-          }
-          if (data.accessToken && data.refreshToken) {
-            try {
-              const { data: restored } = await sbClient.auth.setSession({
-                access_token: data.accessToken,
-                refresh_token: data.refreshToken,
-              });
-              if (restored.session) {
-                const { data: profile } = await sbClient
-                  .from('profiles')
-                  .select('first_name, activated, plan, email')
-                  .eq('id', restored.session.user.id)
-                  .single();
-                if (profile && profile.activated) {
-                  loadActiveView();
-                } else {
-                  paymentEmail = profile?.email || restored.session.user.email;
-                  showView('view-waiting');
-                  startActivationPolling();
-                }
-                return;
-              }
-            } catch (e) {
-              // Token restore failed
-            }
-          }
+        const tokenData = await new Promise((resolve) => {
+          chrome.storage.local.get(['accessToken', 'refreshToken'], resolve);
         });
-      }
-    } catch (err) {
-      // Fallback to chrome.storage if Supabase is unreachable
-      chrome.storage.local.get(['user', 'activated'], (data) => {
-        if (data.activated === true) {
-          loadActiveView();
-        } else if (data.user && data.activated === false) {
-          paymentEmail = data.user.email || '';
+
+        if (tokenData.accessToken && tokenData.refreshToken) {
+          try {
+            const { data: restored } = await sbClient.auth.setSession({
+              access_token: tokenData.accessToken,
+              refresh_token: tokenData.refreshToken,
+            });
+            if (restored.session) {
+              const { data: profile } = await sbClient
+                .from('profiles')
+                .select('first_name, activated, plan, email')
+                .eq('id', restored.session.user.id)
+                .single();
+              if (profile && profile.activated) {
+                chrome.storage.local.set({ activated: true });
+                loadActiveView();
+              } else if (profile) {
+                paymentEmail = profile.email || restored.session.user.email;
+                showView('view-waiting');
+                startActivationPolling();
+              }
+              return;
+            }
+          } catch (e) {
+            // Token restore failed
+          }
+        }
+
+        // Check if user was mid-signup
+        if (localData.user && localData.user.email && localData.activated === false) {
+          paymentEmail = localData.user.email;
           showView('view-waiting');
           startActivationPolling();
         }
-      });
+      }
+    } catch (err) {
+      if (localData.user && localData.user.email && localData.activated === false) {
+        paymentEmail = localData.user.email;
+        showView('view-waiting');
+        startActivationPolling();
+      }
     }
   }
 
