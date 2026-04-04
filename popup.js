@@ -338,6 +338,62 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ── Session restore helpers ──
+
+  async function restoreFromSession(session) {
+    try {
+      await sbClient.auth.setSession({
+        access_token: session.access_token,
+        refresh_token: session.refresh_token,
+      });
+
+      const { data: { session: restoredSession } } = await sbClient.auth.getSession();
+      if (restoredSession) {
+        const { data: profile } = await sbClient
+          .from('profiles')
+          .select('first_name, activated, plan, email')
+          .eq('id', restoredSession.user.id)
+          .single();
+
+        if (profile) {
+          chrome.storage.local.set({
+            user: { firstName: profile.first_name, email: profile.email },
+            firstName: profile.first_name,
+            selectedPlan: profile.plan || 'monthly',
+            activated: profile.activated || false,
+          });
+
+          if (profile.activated) {
+            loadActiveView();
+          } else {
+            startActivationPolling(profile.email);
+          }
+        }
+      }
+    } catch (e) {
+      // Session restore failed — stay on view-welcome
+    }
+  }
+
+  function queryNofishingTabs() {
+    return new Promise((resolve) => {
+      chrome.tabs.query({ url: 'https://nofishing.ai/*' }, (tabs) => {
+        if (tabs.length > 0) {
+          chrome.tabs.sendMessage(tabs[0].id, { type: 'REQUEST_SESSION' }, async (response) => {
+            if (chrome.runtime.lastError || !response || !response.session || !response.session.access_token) {
+              resolve();
+              return;
+            }
+            await restoreFromSession(response.session);
+            resolve();
+          });
+        } else {
+          resolve();
+        }
+      });
+    });
+  }
+
   // ── Initial load: check Supabase session ──
 
   async function initPopup() {
@@ -386,44 +442,16 @@ document.addEventListener('DOMContentLoaded', () => {
         // No local session — try to recover from nofishing.ai Supabase cookie
         await tryLoginFromCookie();
 
-        // If cookie didn't work, try session bridge from chrome.storage
+        // If cookie didn't work, check for stored session from bridge
         const bridgeData = await new Promise((resolve) => {
           chrome.storage.local.get(['supabaseSession'], resolve);
         });
 
         if (bridgeData.supabaseSession && bridgeData.supabaseSession.access_token) {
-          try {
-            await sbClient.auth.setSession({
-              access_token: bridgeData.supabaseSession.access_token,
-              refresh_token: bridgeData.supabaseSession.refresh_token,
-            });
-
-            const { data: { session: restoredSession } } = await sbClient.auth.getSession();
-            if (restoredSession) {
-              const { data: profile } = await sbClient
-                .from('profiles')
-                .select('first_name, activated, plan, email')
-                .eq('id', restoredSession.user.id)
-                .single();
-
-              if (profile) {
-                chrome.storage.local.set({
-                  user: { firstName: profile.first_name, email: profile.email },
-                  firstName: profile.first_name,
-                  selectedPlan: profile.plan || 'monthly',
-                  activated: profile.activated || false,
-                });
-
-                if (profile.activated) {
-                  loadActiveView();
-                } else {
-                  startActivationPolling(profile.email);
-                }
-              }
-            }
-          } catch (e) {
-            // Session bridge restore failed — stay on view-welcome
-          }
+          await restoreFromSession(bridgeData.supabaseSession);
+        } else {
+          // Last resort — actively query open nofishing.ai tabs
+          await queryNofishingTabs();
         }
       }
     } catch (err) {
