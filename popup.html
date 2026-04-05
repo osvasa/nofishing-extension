@@ -109,7 +109,39 @@ body {
   transition: border-color 0.2s;
 }
 
-.auth-field input::placeholder { color: rgba(255,255,255,0.2); }
+.auth-field input::placeholder { color: rgba(255,255,255,0.5); }
+
+.password-wrap {
+  position: relative;
+}
+
+.password-wrap input {
+  padding-right: 40px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.5);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 2px;
+  line-height: 1;
+}
+
+.password-toggle:hover { color: #ffffff; }
+
+.auth-checkbox.highlight {
+  border: 1px solid #EC220C;
+  border-radius: 6px;
+  padding: 6px 8px;
+  margin-left: -8px;
+  margin-right: -8px;
+}
 .auth-field input:focus { outline: none; border-color: #EC220C; }
 .auth-field input.input-error { border-color: #EC220C !important; }
 
@@ -583,11 +615,14 @@ body {
 
         <div class="auth-field">
           <label for="s-password">Password</label>
-          <input id="s-password" type="password" placeholder="6+ characters"/>
+          <div class="password-wrap">
+            <input id="s-password" type="password" placeholder="6+ characters"/>
+            <button type="button" class="password-toggle" id="btn-toggle-password" title="Show password">&#128065;</button>
+          </div>
           <div class="field-error" id="err-s-password"></div>
         </div>
 
-        <div class="auth-checkbox">
+        <div class="auth-checkbox" id="terms-checkbox-wrap">
           <input type="checkbox" id="s-terms"/>
           <label for="s-terms">I agree to the <a href="https://nofishing.ai/terms" target="_blank">Terms of Use</a> and <a href="https://nofishing.ai/privacy" target="_blank">Privacy Policy</a></label>
         </div>
@@ -602,6 +637,34 @@ body {
 
     <div class="screen-footer">NøFishing AI v1.0.0</div>
   </div>
+  <script>
+  // Password toggle
+  document.getElementById('btn-toggle-password').addEventListener('click', function() {
+    var input = document.getElementById('s-password');
+    if (input.type === 'password') {
+      input.type = 'text';
+      this.textContent = '\u{1F441}\u{FE0F}\u{200D}\u{1F5E8}';
+      this.title = 'Hide password';
+    } else {
+      input.type = 'password';
+      this.textContent = '\u{1F441}';
+      this.title = 'Show password';
+    }
+  });
+
+  // Terms checkbox highlight
+  document.getElementById('btn-signup-submit').addEventListener('click', function() {
+    var wrap = document.getElementById('terms-checkbox-wrap');
+    if (!document.getElementById('s-terms').checked) {
+      wrap.classList.add('highlight');
+    }
+  });
+  document.getElementById('s-terms').addEventListener('change', function() {
+    if (this.checked) {
+      document.getElementById('terms-checkbox-wrap').classList.remove('highlight');
+    }
+  });
+  </script>
 </div>
 
 <!-- ══════════════════════════════════════════ -->
