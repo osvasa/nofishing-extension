@@ -393,4 +393,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sessionEmail: message.session.user?.email,
     });
   }
+
+  if (message.type === 'CLOSE_TAB' && sender.tab) {
+    chrome.tabs.remove(sender.tab.id);
+  }
 });
