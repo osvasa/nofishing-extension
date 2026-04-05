@@ -79,7 +79,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('s-terms').addEventListener('change', () => {
     document.getElementById('err-s-terms').classList.remove('show');
+    document.getElementById('terms-container').style.cssText = '';
   });
+
+  // Password eye toggle
+  const toggleBtn = document.getElementById('btn-toggle-password');
+  const passwordInput = document.getElementById('s-password');
+  if (toggleBtn && passwordInput) {
+    toggleBtn.addEventListener('click', () => {
+      const isHidden = passwordInput.type === 'password';
+      passwordInput.type = isHidden ? 'text' : 'password';
+      document.getElementById('eye-icon').innerHTML = isHidden
+        ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>'
+        : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+    });
+  }
 
   // Clear errors on typing — login fields
   ['l-email', 'l-password'].forEach((id) => {
@@ -144,6 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (!terms) {
       document.getElementById('err-s-terms').classList.add('show');
+      document.getElementById('terms-container').style.cssText = 'border: 2px solid #EC220C; border-radius: 4px; padding: 4px;';
       valid = false;
     }
 

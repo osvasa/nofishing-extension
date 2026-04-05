@@ -111,8 +111,8 @@ body {
 
 .auth-field input::placeholder { color: rgba(255,255,255,0.5); }
 
-#view-welcome input { color: #ffffff; }
-#view-welcome input::placeholder { color: rgba(255,255,255,0.5); }
+#view-welcome input { color: #ffffff !important; }
+#view-welcome input::placeholder { color: rgba(255,255,255,0.5) !important; }
 
 .password-wrap {
   position: relative;
@@ -633,40 +633,6 @@ body {
 
     <div class="screen-footer">NøFishing AI v1.0.0</div>
   </div>
-  <script>
-  // Password toggle with SVG eye
-  document.getElementById('btn-toggle-password').addEventListener('click', function() {
-    var input = document.getElementById('s-password');
-    var svg = document.getElementById('eye-icon');
-    if (input.type === 'password') {
-      input.type = 'text';
-      svg.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/><line x1="1" y1="1" x2="23" y2="23"/>';
-      this.title = 'Hide password';
-    } else {
-      input.type = 'password';
-      svg.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
-      this.title = 'Show password';
-    }
-  });
-
-  // Terms checkbox border highlight
-  document.getElementById('btn-signup-submit').addEventListener('click', function() {
-    var container = document.getElementById('terms-container');
-    if (!document.getElementById('s-terms').checked) {
-      container.style.border = '2px solid #EC220C';
-      container.style.borderRadius = '4px';
-      container.style.padding = '4px';
-    }
-  });
-  document.getElementById('s-terms').addEventListener('change', function() {
-    if (this.checked) {
-      var container = document.getElementById('terms-container');
-      container.style.border = '';
-      container.style.borderRadius = '';
-      container.style.padding = '';
-    }
-  });
-  </script>
 </div>
 
 <!-- ══════════════════════════════════════════ -->
