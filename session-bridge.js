@@ -31,3 +31,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
   return true;
 });
+
+window.addEventListener('message', (event) => {
+  if (event.data && event.data.source === 'nofishing-payment' && event.data.type === 'CLOSE_TAB') {
+    chrome.runtime.sendMessage({ type: 'CLOSE_TAB' });
+  }
+});
