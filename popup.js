@@ -424,31 +424,41 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('settings-sites').textContent = data.sitesVisited || 0;
     document.getElementById('settings-threats').textContent = data.threatsBlocked || 0;
 
-    if (sbClient && email !== '—') {
+    if (sbClient) {
       try {
-        const { data: profile } = await sbClient
-          .from('profiles')
-          .select('id, created_at, plan')
-          .eq('email', email)
-          .single();
+        const { data: { session } } = await sbClient.auth.getSession();
+        if (session) {
+          const { data: profile } = await sbClient
+            .from('profiles')
+            .select('id, created_at, plan, email')
+            .eq('id', session.user.id)
+            .single();
 
-        if (profile && profile.created_at) {
-          const createdDate = new Date(profile.created_at);
-          const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+          if (profile) {
+            if (profile.email) {
+              document.getElementById('settings-email').textContent = profile.email;
+              chrome.storage.local.set({ user: { email: profile.email } });
+            }
+            if (profile.plan) {
+              document.getElementById('settings-plan').textContent = profile.plan === 'yearly' ? 'Yearly Protection $49.99/yr' : 'Monthly Protection $4.99/mo';
+            }
+            if (profile.created_at) {
+              const createdDate = new Date(profile.created_at);
+              const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-          document.getElementById('settings-member-since').textContent =
-            months[createdDate.getMonth()] + ' ' + createdDate.getDate() + ', ' + createdDate.getFullYear();
+              document.getElementById('settings-member-since').textContent =
+                months[createdDate.getMonth()] + ' ' + createdDate.getDate() + ', ' + createdDate.getFullYear();
 
-          const days = Math.max(1, Math.floor((Date.now() - createdDate.getTime()) / 86400000) + 1);
-          document.getElementById('settings-days').textContent = days;
-
-          if (profile.id) {
-            const clean = profile.id.replace(/-/g, '');
-            document.getElementById('settings-license').textContent =
-              'NFAI-' + clean.substring(0, 4).toUpperCase() + '-' + clean.substring(4, 8).toUpperCase();
+              const days = Math.max(1, Math.floor((Date.now() - createdDate.getTime()) / 86400000) + 1);
+              document.getElementById('settings-days').textContent = days;
+            }
+            if (profile.id) {
+              const clean = profile.id.replace(/-/g, '');
+              document.getElementById('settings-license').textContent =
+                'NFAI-' + clean.substring(0, 4).toUpperCase() + '-' + clean.substring(4, 8).toUpperCase();
+            }
+            document.getElementById('settings-coverage').textContent = 'All websites · Real-time AI · 1 device';
           }
-
-          document.getElementById('settings-coverage').textContent = 'All websites · Real-time AI · 1 device';
         }
       } catch (err) {
         // Supabase unavailable — leave defaults
