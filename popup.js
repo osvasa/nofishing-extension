@@ -428,7 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         const { data: profile } = await sbClient
           .from('profiles')
-          .select('id, created_at, plan, next_renewal')
+          .select('id, created_at, plan')
           .eq('email', email)
           .single();
 
@@ -441,29 +441,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
           const days = Math.max(1, Math.floor((Date.now() - createdDate.getTime()) / 86400000) + 1);
           document.getElementById('settings-days').textContent = days;
-
-          // Renewal date
-          if (profile.next_renewal) {
-            const renewalDate = new Date(profile.next_renewal);
-            document.getElementById('settings-renews').textContent =
-              months[renewalDate.getMonth()] + ' ' + renewalDate.getDate() + ', ' + renewalDate.getFullYear();
-          } else {
-            const renewalDate = new Date(createdDate);
-            if ((profile.plan || plan) === 'yearly') {
-              renewalDate.setFullYear(renewalDate.getFullYear() + 1);
-            } else {
-              renewalDate.setMonth(renewalDate.getMonth() + 1);
-            }
-            while (renewalDate < new Date()) {
-              if ((profile.plan || plan) === 'yearly') {
-                renewalDate.setFullYear(renewalDate.getFullYear() + 1);
-              } else {
-                renewalDate.setMonth(renewalDate.getMonth() + 1);
-              }
-            }
-            document.getElementById('settings-renews').textContent =
-              months[renewalDate.getMonth()] + ' ' + renewalDate.getDate() + ', ' + renewalDate.getFullYear();
-          }
 
           if (profile.id) {
             const clean = profile.id.replace(/-/g, '');
