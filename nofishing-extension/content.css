@@ -1,0 +1,364 @@
+/* ── NøFishing AI — Overlay Styles ── */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+#nofishing-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 2147483647 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  -webkit-font-smoothing: antialiased !important;
+  padding: 24px !important;
+  box-sizing: border-box !important;
+}
+
+/* Alarm keyframes */
+@keyframes bgPulse {
+  0%, 100% { background-color: #EC220C; }
+  50% { background-color: #8B0000; }
+}
+
+@keyframes iconBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+@keyframes textFlash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+@keyframes btnPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes iconPulse {
+  0%   { transform: scale(1);    filter: drop-shadow(0 0 0px #EC220C); }
+  50%  { transform: scale(1.12); filter: drop-shadow(0 0 18px #EC220C); }
+  100% { transform: scale(1);    filter: drop-shadow(0 0 0px #EC220C); }
+}
+
+/* Danger — red */
+#nofishing-overlay.nf-danger {
+  background: #EC220C !important;
+  animation: bgPulse 2s ease-in-out infinite !important;
+}
+
+/* Warning — yellow/amber */
+#nofishing-overlay.nf-warning {
+  background: #F59E0B !important;
+}
+
+/* Inner card */
+.nf-overlay-inner {
+  width: 100%;
+  max-width: 440px;
+  height: 75vh;
+  background: #111111;
+  border-radius: 16px;
+  text-align: center;
+  color: #ffffff;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.nf-card-header {
+  padding: 24px 36px 16px;
+  flex-shrink: 0;
+}
+
+.nf-logo {
+  display: block;
+  width: 140px;
+  height: auto;
+  margin: 0 auto 16px;
+}
+
+.nf-divider {
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.nf-card-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 36px;
+}
+
+.nf-card-footer {
+  padding: 16px 36px 24px;
+  flex-shrink: 0;
+}
+
+/* Icon ring */
+.nf-icon-ring {
+  width: 180px;
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+  background: none !important;
+  border: none !important;
+  border-radius: 0;
+}
+
+.nf-danger .nf-icon-ring {
+  animation: iconBlink 2s ease-in-out infinite;
+}
+
+.nf-warning .nf-icon-ring {
+  background: none !important;
+  border: none !important;
+}
+
+.nf-shield-icon {
+  width: 180px;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 50%;
+  background: none !important;
+  border: none !important;
+  animation: iconPulse 1.2s ease-in-out infinite;
+}
+
+/* Title */
+.nf-title {
+  font-size: 24px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.04em !important;
+  margin: 0 0 12px !important;
+  line-height: 1.2 !important;
+}
+
+.nf-danger .nf-title {
+  color: #ffffff !important;
+  font-size: 32px !important;
+  animation: textFlash 2s ease-in-out infinite;
+}
+
+.nf-warning .nf-title {
+  color: #F59E0B !important;
+}
+
+/* Subtitle */
+.nf-subtitle {
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+  line-height: 1.4 !important;
+  margin: 0 0 14px !important;
+  max-width: 400px;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* URL box */
+.nf-url-box {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.nf-url-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.35);
+  margin-bottom: 6px;
+}
+
+.nf-url-value {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  word-break: break-all;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+/* Threat score bar */
+.nf-score-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.nf-score-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.nf-score-track {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.nf-danger .nf-score-fill {
+  height: 100%;
+  background: #EC220C;
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+
+.nf-warning .nf-score-fill {
+  height: 100%;
+  background: #F59E0B;
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+
+.nf-score-value {
+  font-size: 13px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.nf-danger .nf-score-value {
+  color: #EC220C;
+}
+
+.nf-warning .nf-score-value {
+  color: #F59E0B;
+}
+
+/* Reasons */
+.nf-reasons {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 28px;
+  text-align: left;
+}
+
+.nf-reasons-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.35);
+  margin-bottom: 10px;
+}
+
+.nf-reasons-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nf-reasons-list li {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 4px 0 4px 16px;
+  position: relative;
+  line-height: 1.5;
+}
+
+.nf-reasons-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+.nf-danger .nf-reasons-list li::before {
+  background: #EC220C;
+}
+
+.nf-warning .nf-reasons-list li::before {
+  background: #F59E0B;
+}
+
+/* Action buttons */
+.nf-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.nf-btn {
+  display: block;
+  width: 100%;
+  padding: 14px 24px;
+  border-radius: 12px;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s, transform 0.1s;
+  text-align: center;
+}
+
+.nf-btn:hover {
+  opacity: 0.9;
+}
+
+.nf-btn:active {
+  transform: scale(0.98);
+}
+
+.nf-danger .nf-btn-close {
+  background: #ffffff;
+  color: #111111;
+  font-size: 16px;
+  padding: 18px 24px;
+  animation: btnPulse 2s ease-in-out infinite;
+}
+
+.nf-warning .nf-btn-close {
+  background: #F59E0B;
+  color: #111111;
+}
+
+.nf-btn-proceed {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 12px 24px;
+}
+
+.nf-btn-proceed:hover {
+  color: rgba(255, 255, 255, 0.6);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Branding */
+.nf-branding {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.2);
+  margin-top: 24px;
+  letter-spacing: 0.02em;
+}

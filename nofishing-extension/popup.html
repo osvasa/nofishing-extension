@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NøFishing AI</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  width: 360px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: #EC220C;
+  color: #111111;
+}
+
+/* ── Views ── */
+.view { display: none; }
+.view.active { display: block; }
+
+/* ── Shared black header ── */
+.popup-header {
+  width: 100%;
+  height: 50px;
+  background: #111111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Shared body ── */
+.screen-body {
+  padding: 24px 20px;
+  text-align: center;
+  background: #EC220C;
+}
+
+.screen-fish {
+  width: 80px;
+  height: auto;
+  display: block;
+  margin: 0 auto 12px;
+}
+
+.screen-title {
+  font-size: 22px;
+  font-weight: 900;
+  color: #ffffff;
+  margin-bottom: 8px;
+}
+
+.screen-sub {
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.6;
+  margin-bottom: 20px;
+  max-width: 320px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.screen-footer {
+  font-size: 10px;
+  color: rgba(255,255,255,0.5);
+  margin-top: 20px;
+}
+
+/* ── Auth card ── */
+.auth-card {
+  background: #1a1a1a;
+  border-radius: 12px;
+  padding: 24px 20px;
+  margin-bottom: 16px;
+}
+
+.auth-row {
+  display: flex;
+  gap: 10px;
+}
+
+.auth-row .auth-field { flex: 1; }
+
+.auth-field {
+  margin-bottom: 14px;
+}
+
+.auth-field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.45);
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.auth-field input {
+  width: 100%;
+  padding: 11px 12px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  transition: border-color 0.2s;
+}
+
+.auth-field input::placeholder { color: rgba(255,255,255,0.5); }
+
+#view-welcome input { color: #ffffff !important; }
+#view-welcome input::placeholder { color: rgba(255,255,255,0.5) !important; }
+
+.password-wrap {
+  position: relative;
+}
+
+.password-wrap input {
+  padding-right: 40px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.5);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 2px;
+  line-height: 1;
+}
+
+.password-toggle:hover { color: #ffffff; }
+
+.auth-field input:focus { outline: none; border-color: #EC220C; }
+.auth-field input.input-error { border-color: #EC220C !important; }
+
+.field-error {
+  font-size: 10px;
+  color: #EC220C;
+  margin-top: 3px;
+  display: none;
+}
+
+.field-error.show { display: block; }
+
+.auth-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.auth-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  flex-shrink: 0;
+  accent-color: #EC220C;
+}
+
+.auth-checkbox label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.auth-checkbox label a {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.auth-checkbox-error {
+  font-size: 10px;
+  color: #EC220C;
+  margin-top: -12px;
+  margin-bottom: 14px;
+  display: none;
+}
+
+.auth-checkbox-error.show { display: block; }
+
+.error-banner {
+  font-size: 11px;
+  color: #EC220C;
+  background: rgba(236,34,12,0.06);
+  border: 1px solid rgba(236,34,12,0.15);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  text-align: center;
+  display: none;
+}
+
+.error-banner.show { display: block; }
+
+.auth-btn {
+  display: block;
+  width: 100%;
+  padding: 13px 16px;
+  background: #EC220C;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.auth-btn:hover { opacity: 0.9; }
+.auth-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.auth-switch {
+  text-align: center;
+  font-size: 12px;
+  color: rgba(255,255,255,0.7);
+  margin-top: 16px;
+}
+
+.auth-switch button {
+  background: none;
+  border: none;
+  color: #ffffff;
+  text-decoration: underline;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ── Plan cards ── */
+.plan-cards {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.plan-card {
+  flex: 1;
+  background: #1a1a1a;
+  border-radius: 12px;
+  padding: 18px 12px;
+  text-align: center;
+  position: relative;
+}
+
+.plan-card-badge {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  font-weight: 700;
+  background: #EC220C;
+  color: #ffffff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.plan-card-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+.plan-card-price {
+  font-size: 24px;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1;
+  margin-bottom: 3px;
+}
+
+.plan-card-price sup {
+  font-size: 12px;
+  vertical-align: top;
+  font-weight: 700;
+}
+
+.plan-card-period {
+  font-size: 10px;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 12px;
+}
+
+.plan-card-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 14px;
+  text-align: left;
+}
+
+.plan-card-features li {
+  font-size: 10px;
+  color: rgba(255,255,255,0.7);
+  padding: 2px 0 2px 12px;
+  position: relative;
+  line-height: 1.5;
+}
+
+.plan-card-features li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #EC220C;
+}
+
+.plan-card-btn {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  background: #ffffff;
+  color: #111111;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.plan-card-btn:hover { opacity: 0.9; }
+.plan-card-btn.selected { background: #EC220C; color: #ffffff; }
+
+/* ── Waiting button ── */
+.btn-waiting {
+  display: block;
+  width: 100%;
+  padding: 14px 16px;
+  background: #ffffff;
+  color: #111111;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.btn-waiting:hover { opacity: 0.9; }
+
+/* ── VIEW: Active / Protection Status ── */
+.active-header {
+  width: 100%;
+  height: 50px;
+  background: #111111;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+}
+
+.active-header-gear {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+
+.active-header-gear:hover { opacity: 0.7; }
+
+.active-body {
+  padding: 24px 20px;
+  text-align: center;
+  background: #EC220C;
+}
+
+.active-status-text {
+  font-size: 22px;
+  font-weight: 900;
+  color: #111111;
+  letter-spacing: 3px;
+  margin-bottom: 20px;
+}
+
+.active-stats {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.active-stat-box {
+  flex: 1;
+  background: #3a3a3a;
+  border-radius: 10px;
+  padding: 18px 12px;
+  text-align: center;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.active-stat-num {
+  font-size: 32px;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.active-stat-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.active-msg {
+  font-size: 12px;
+  color: #ffffff;
+  margin-bottom: 16px;
+}
+
+.guard-fish-container {
+  width: 100%;
+  height: 70px;
+  background: #EC220C;
+  overflow: hidden;
+  position: relative;
+}
+
+.guard-fish-img {
+  width: 60px;
+  height: auto;
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  animation: swim 6s linear infinite;
+}
+
+@keyframes swim {
+  0%    { left: 0; transform: scaleX(-1); }
+  50%   { left: calc(100% - 60px); transform: scaleX(-1); }
+  50.1% { left: calc(100% - 60px); transform: scaleX(1); }
+  100%  { left: 0; transform: scaleX(1); }
+}
+
+.active-footer {
+  margin-top: 16px;
+  font-size: 10px;
+  color: rgba(255,255,255,0.3);
+}
+
+/* ── VIEW: Settings ── */
+.settings-header {
+  width: 100%;
+  height: 50px;
+  background: #111111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 0 16px;
+}
+
+.settings-back {
+  position: absolute;
+  left: 16px;
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.settings-back:hover { opacity: 0.7; }
+
+.settings-body {
+  padding: 20px;
+  background: #111111;
+}
+
+.settings-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+}
+
+.settings-card {
+  background: #3a3a3a;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  border: 1px solid #333333;
+}
+
+.settings-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+}
+
+.settings-row-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.45);
+}
+
+.settings-row-value {
+  font-size: 12px;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.settings-row-value.status-active {
+  color: #22C55E;
+  font-weight: 700;
+}
+
+.settings-logout {
+  display: block;
+  width: 100%;
+  padding: 14px 16px;
+  background: #EC220C;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  margin-top: 8px;
+}
+
+.settings-logout:hover { opacity: 0.9; }
+
+.settings-cancel {
+  display: block;
+  text-align: center;
+  margin-top: 14px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.35);
+  text-decoration: none;
+  font-family: 'Inter', sans-serif;
+}
+
+.settings-cancel:hover { color: rgba(255,255,255,0.55); }
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- VIEW: Welcome / Signup                    -->
+<!-- ══════════════════════════════════════════ -->
+<div id="view-welcome" class="view active">
+  <div class="popup-header">
+    <img src="icons/logo.png" alt="NøFishing AI" style="height:24px;width:auto;"/>
+  </div>
+  <div class="screen-body">
+    <img src="icons/nofishing-ai-bubbles.gif" alt="NøFishing AI" class="screen-fish"/>
+    <div class="screen-title">Create your account</div>
+
+    <div class="auth-card">
+      <form id="signup-form" novalidate>
+        <div class="auth-row">
+          <div class="auth-field">
+            <label for="s-first">First Name</label>
+            <input id="s-first" type="text" placeholder="Jane"/>
+            <div class="field-error" id="err-s-first"></div>
+          </div>
+          <div class="auth-field">
+            <label for="s-last">Last Name</label>
+            <input id="s-last" type="text" placeholder="Smith"/>
+            <div class="field-error" id="err-s-last"></div>
+          </div>
+        </div>
+
+        <div class="auth-field">
+          <label for="s-email">Email</label>
+          <input id="s-email" type="email" placeholder="you@example.com"/>
+          <div class="field-error" id="err-s-email"></div>
+        </div>
+
+        <div class="auth-field">
+          <label for="s-confirm-email">Confirm Email</label>
+          <input id="s-confirm-email" type="email" placeholder="Confirm your email"/>
+          <div class="field-error" id="err-s-confirm-email"></div>
+        </div>
+
+        <div class="auth-field">
+          <label for="s-password">Password</label>
+          <div class="password-wrap">
+            <input id="s-password" type="password" placeholder="6+ characters"/>
+            <button type="button" class="password-toggle" id="btn-toggle-password" title="Show password"><svg id="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button>
+          </div>
+          <div class="field-error" id="err-s-password"></div>
+        </div>
+
+        <div class="auth-checkbox" id="terms-container">
+          <input type="checkbox" id="s-terms"/>
+          <label for="s-terms">I agree to the <a href="https://nofishing.ai/terms" target="_blank">Terms of Use</a> and <a href="https://nofishing.ai/privacy" target="_blank">Privacy Policy</a></label>
+        </div>
+        <div class="auth-checkbox-error" id="err-s-terms">You must agree to the terms</div>
+
+        <div class="error-banner" id="signup-error-banner"></div>
+        <button type="submit" class="auth-btn" id="btn-signup-submit">Continue</button>
+      </form>
+
+      <div class="auth-switch">Already have an account? <button id="btn-go-login">Log in</button></div>
+    </div>
+
+    <div class="screen-footer">NøFishing AI v1.0.0</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- VIEW: Plan Selection                      -->
+<!-- ══════════════════════════════════════════ -->
+<div id="view-plan" class="view">
+  <div class="popup-header">
+    <img src="icons/logo.png" alt="NøFishing AI" style="height:24px;width:auto;"/>
+  </div>
+  <div class="screen-body">
+    <div class="screen-title">Choose Your Plan</div>
+    <p class="screen-sub">Cancel anytime. No hidden fees.</p>
+
+    <div class="plan-cards">
+      <div class="plan-card">
+        <div class="plan-card-label">Monthly</div>
+        <div class="plan-card-price"><sup>$</sup>4.99</div>
+        <div class="plan-card-period">/month</div>
+        <ul class="plan-card-features">
+          <li>AI-powered phishing detection</li>
+          <li>Real-time website analysis</li>
+          <li>Automatic link scanning</li>
+          <li>Continuous AI updates</li>
+          <li>Zero configuration</li>
+          <li>Runs silently 24/7</li>
+        </ul>
+        <button class="plan-card-btn" id="btn-plan-monthly">Select Monthly</button>
+      </div>
+      <div class="plan-card">
+        <span class="plan-card-badge">BEST VALUE</span>
+        <div class="plan-card-label">Yearly</div>
+        <div class="plan-card-price"><sup>$</sup>49.99</div>
+        <div class="plan-card-period">/year — save 17%</div>
+        <ul class="plan-card-features">
+          <li>AI-powered phishing detection</li>
+          <li>Real-time website analysis</li>
+          <li>Automatic link scanning</li>
+          <li>Continuous AI updates</li>
+          <li>Zero configuration</li>
+          <li>Runs silently 24/7</li>
+        </ul>
+        <button class="plan-card-btn" id="btn-plan-yearly">Select Yearly</button>
+      </div>
+    </div>
+
+    <div class="screen-footer">NøFishing AI v1.0.0</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- VIEW: Waiting for Payment                 -->
+<!-- ══════════════════════════════════════════ -->
+<div id="view-waiting" class="view">
+  <div class="popup-header">
+    <img src="icons/logo.png" alt="NøFishing AI" style="height:24px;width:auto;"/>
+  </div>
+  <div class="screen-body">
+    <img src="icons/nofishing-ai-bubbles.gif" alt="NøFishing AI" class="screen-fish"/>
+    <div class="screen-title">Full Protection — One Step Away</div>
+    <p class="screen-sub">Complete your payment in the browser tab to activate your protection.</p>
+    <button class="btn-waiting" id="btn-open-payment">Complete My Protection &rarr;</button>
+    <div class="screen-footer">NøFishing AI v1.0.0</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- VIEW: Login                               -->
+<!-- ══════════════════════════════════════════ -->
+<div id="view-login" class="view">
+  <div class="popup-header">
+    <img src="icons/logo.png" alt="NøFishing AI" style="height:24px;width:auto;"/>
+  </div>
+  <div class="screen-body">
+    <img src="icons/nofishing-ai-bubbles.gif" alt="NøFishing AI" class="screen-fish"/>
+    <div class="screen-title">Welcome back</div>
+    <p class="screen-sub">Sign in to activate your protection.</p>
+
+    <div class="auth-card">
+      <form id="login-form" novalidate>
+        <div class="error-banner" id="login-error-banner"></div>
+
+        <div class="auth-field">
+          <label for="l-email">Email</label>
+          <input id="l-email" type="email" placeholder="you@example.com"/>
+          <div class="field-error" id="err-l-email"></div>
+        </div>
+
+        <div class="auth-field">
+          <label for="l-password">Password</label>
+          <div class="password-wrap">
+            <input id="l-password" type="password" placeholder="Your password"/>
+            <button type="button" class="password-toggle" id="btn-toggle-login-password" title="Show password"><svg id="eye-icon-login" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button>
+          </div>
+          <div class="field-error" id="err-l-password"></div>
+        </div>
+
+        <div style="text-align:center;margin-bottom:14px;">
+          <a href="https://nofishing.ai/reset-password" target="_blank" style="font-size:11px;color:rgba(255,255,255,0.5);text-decoration:none;font-family:'Inter',sans-serif;">Forgot your password?</a>
+        </div>
+
+        <button type="submit" class="auth-btn" id="btn-login-submit">Log in</button>
+      </form>
+
+      <div class="auth-switch">Don't have an account? <button id="btn-go-signup">Sign up</button></div>
+    </div>
+
+    <div class="screen-footer">NøFishing AI v1.0.0</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- VIEW: Active / Protection Status          -->
+<!-- ══════════════════════════════════════════ -->
+<div id="view-active" class="view">
+  <div class="active-header">
+    <img src="icons/logo.png" alt="NøFishing AI" style="height:24px;width:auto;"/>
+    <button class="active-header-gear" id="btn-open-settings">&#9881;</button>
+  </div>
+  <div class="active-body">
+    <div class="guard-fish-container">
+      <img src="icons/nofishing-ai-bubbles.gif" alt="Guard fish" class="guard-fish-img"/>
+    </div>
+    <div class="active-status-text" style="color:#ffffff;">AI PROTECTED</div>
+    <div class="active-stats">
+      <div class="active-stat-box">
+        <div class="active-stat-num" id="stat-sites">0</div>
+        <div class="active-stat-label">Sites Safe</div>
+      </div>
+      <div class="active-stat-box">
+        <div class="active-stat-num" id="stat-threats">0</div>
+        <div class="active-stat-label">Threats Blocked</div>
+      </div>
+    </div>
+    <div class="active-msg">NøFishing AI is running silently, protecting you.</div>
+    <img src="icons/fish-no-symbol-red.png" style="width:80px;height:80px;display:block;margin:0 auto 24px auto;">
+    <div class="active-footer">NøFishing AI v1.0.0</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- VIEW: Settings                            -->
+<!-- ══════════════════════════════════════════ -->
+<div id="view-settings" class="view">
+  <div class="settings-header">
+    <button class="settings-back" id="btn-settings-back">&#8592; Back</button>
+    <img src="icons/logo.png" alt="NøFishing AI" style="height:24px;width:auto;"/>
+  </div>
+  <div class="settings-body">
+    <div class="settings-section-label">Account</div>
+    <div class="settings-card">
+      <div class="settings-row">
+        <span class="settings-row-label">Email</span>
+        <span class="settings-row-value" id="settings-email">—</span>
+      </div>
+      <div class="settings-row">
+        <span class="settings-row-label">Plan</span>
+        <span class="settings-row-value" id="settings-plan">—</span>
+      </div>
+      <div class="settings-row">
+        <span class="settings-row-label">Protected since</span>
+        <span class="settings-row-value" id="settings-member-since">—</span>
+      </div>
+      <div class="settings-row">
+        <span class="settings-row-label">License</span>
+        <span class="settings-row-value" id="settings-license">—</span>
+      </div>
+      <div class="settings-row">
+        <span class="settings-row-label">Coverage</span>
+        <span class="settings-row-value" id="settings-coverage">—</span>
+      </div>
+    </div>
+
+    <div class="settings-section-label">Protection</div>
+    <div class="settings-card">
+      <div class="settings-row">
+        <span class="settings-row-label">Status</span>
+        <span class="settings-row-value status-active"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22C55E;margin-right:6px;vertical-align:middle;"></span>Active</span>
+      </div>
+      <div class="settings-row">
+        <span class="settings-row-label">Days protected</span>
+        <span class="settings-row-value" id="settings-days">—</span>
+      </div>
+      <div class="settings-row">
+        <span class="settings-row-label">Sites scanned</span>
+        <span class="settings-row-value" id="settings-sites">0</span>
+      </div>
+      <div class="settings-row">
+        <span class="settings-row-label">Threats blocked</span>
+        <span class="settings-row-value" id="settings-threats">0</span>
+      </div>
+    </div>
+
+    <button class="settings-logout" id="btn-logout">Log Out</button>
+    <a href="mailto:hello@nofishing.ai?subject=Cancel Subscription" class="settings-cancel">Cancel subscription</a>
+  </div>
+</div>
+
+<script src="supabase.js"></script>
+<script src="popup.js"></script>
+</body>
+</html>
