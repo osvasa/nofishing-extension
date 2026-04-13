@@ -56,6 +56,9 @@ const SAFE_DOMAINS = new Set([
   'linkedin.com', 'www.linkedin.com', 'netflix.com', 'www.netflix.com',
   'spotify.com', 'open.spotify.com', 'discord.com', 'slack.com',
   'zoom.us', 'nytimes.com', 'bbc.com', 'cnn.com',
+  'ups.com', 'www.ups.com', 'fedex.com', 'www.fedex.com',
+  'dhl.com', 'www.dhl.com', 'usps.com', 'www.usps.com',
+  'ebay.com', 'www.ebay.com',
 ]);
 
 function extractRootDomain(hostname) {
@@ -414,6 +417,44 @@ chrome.webNavigation.onCompleted.addListener(async (details) => {
       });
     } catch {
       // Content script may not be ready yet — retry once
+      setTimeout(async () => {
+        try {
+          await chrome.tabs.sendMessage(details.tabId, {
+            action: 'showOverlay',
+            level: result.level,
+            score: result.score,
+            reasons: result.reasons,
+            url: details.url,
+          });
+        } catch { /* content script not available */ }
+      }, 500);
+    }
+  }
+});
+
+// ── Error Navigation Listener (catches failed/down phishing domains) ──
+
+chrome.webNavigation.onErrorOccurred.addListener(async (details) => {
+  if (details.frameId !== 0) return;
+
+  const active = await isActivated();
+  if (!active) return;
+
+  const result = analyzeUrl(details.url);
+  tabResults[details.tabId] = { url: details.url, ...result };
+
+  updateBadge(details.tabId, result.level);
+
+  if (result.level === 'danger' || result.level === 'warning') {
+    try {
+      await chrome.tabs.sendMessage(details.tabId, {
+        action: 'showOverlay',
+        level: result.level,
+        score: result.score,
+        reasons: result.reasons,
+        url: details.url,
+      });
+    } catch {
       setTimeout(async () => {
         try {
           await chrome.tabs.sendMessage(details.tabId, {
