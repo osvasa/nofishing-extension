@@ -401,10 +401,10 @@ document.addEventListener('DOMContentLoaded', () => {
   let adsRefreshInterval = null;
 
   function refreshStats() {
-    chrome.storage.local.get(['sitesVisited', 'threatsBlocked', 'adsBlocked'], (data) => {
+    chrome.storage.local.get(['sitesVisited', 'threatsBlocked', 'totalTrackersBlocked'], (data) => {
       document.getElementById('stat-sites').textContent = data.sitesVisited || 0;
       document.getElementById('stat-threats').textContent = data.threatsBlocked || 0;
-      document.getElementById('stat-ads').textContent = data.adsBlocked || 0;
+      document.getElementById('stat-ads').textContent = data.totalTrackersBlocked || 0;
     });
   }
 

@@ -7,9 +7,12 @@ chrome.runtime.onInstalled.addListener(() => {
   }
 
   // Generate unique device ID on first install
-  chrome.storage.local.get(['deviceId'], (data) => {
+  chrome.storage.local.get(['deviceId', 'totalTrackersBlocked'], (data) => {
     if (!data.deviceId) {
       chrome.storage.local.set({ deviceId: crypto.randomUUID() });
+    }
+    if (data.totalTrackersBlocked === undefined) {
+      chrome.storage.local.set({ totalTrackersBlocked: 0 });
     }
   });
 });
@@ -616,8 +619,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 
   if (msg.action === 'getBlockedCount') {
-    chrome.storage.local.get(['adsBlocked'], (data) => {
-      sendResponse({ count: data.adsBlocked || 0 });
+    chrome.storage.local.get(['totalTrackersBlocked'], (data) => {
+      sendResponse({ count: data.totalTrackersBlocked || 0 });
     });
     return true;
   }
@@ -685,8 +688,8 @@ if (chrome.webRequest && chrome.webRequest.onBeforeRequest) {
       try {
         const url = new URL(details.url);
         if (matchesBlockedDomain(url.hostname)) {
-          chrome.storage.local.get(['adsBlocked'], (data) => {
-            chrome.storage.local.set({ adsBlocked: (data.adsBlocked || 0) + 1 });
+          chrome.storage.local.get(['totalTrackersBlocked'], (data) => {
+            chrome.storage.local.set({ totalTrackersBlocked: (data.totalTrackersBlocked || 0) + 1 });
           });
         }
       } catch { /* invalid URL, ignore */ }
