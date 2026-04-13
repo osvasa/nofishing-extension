@@ -398,7 +398,7 @@ body {
 
 .active-stats {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   margin-bottom: 16px;
 }
 
@@ -534,6 +534,43 @@ body {
 .settings-row-value.status-active {
   color: #22C55E;
   font-weight: 700;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  flex-shrink: 0;
+}
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #555;
+  border-radius: 11px;
+  transition: background 0.2s;
+}
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  left: 3px;
+  bottom: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+.toggle-switch input:checked + .toggle-slider {
+  background: #22C55E;
+}
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(18px);
 }
 
 .settings-logout {
@@ -765,6 +802,10 @@ body {
         <div class="active-stat-num" id="stat-threats">0</div>
         <div class="active-stat-label">Threats Blocked</div>
       </div>
+      <div class="active-stat-box">
+        <div class="active-stat-num" id="stat-ads">0</div>
+        <div class="active-stat-label">Ads Blocked</div>
+      </div>
     </div>
     <div class="active-msg">NøFishing AI is running silently, protecting you.</div>
     <img src="icons/fish-no-symbol-red.png" style="width:80px;height:80px;display:block;margin:0 auto 24px auto;">
@@ -822,6 +863,21 @@ body {
       <div class="settings-row">
         <span class="settings-row-label">Threats blocked</span>
         <span class="settings-row-value" id="settings-threats">0</span>
+      </div>
+    </div>
+
+    <div class="settings-section-label">Content Blocking</div>
+    <div class="settings-card">
+      <div class="settings-row">
+        <span class="settings-row-label">Block Ads & Trackers</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="toggle-content-blocking" checked />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="settings-row">
+        <span class="settings-row-label">Requests blocked</span>
+        <span class="settings-row-value" id="settings-blocked-count">0</span>
       </div>
     </div>
 

@@ -154,6 +154,7 @@
 
 // Listen for activation messages from nofishing.ai website
 window.addEventListener('message', (event) => {
+  if (event.origin !== 'https://nofishing.ai') return;
   if (event.data && event.data.source === 'nofishing-website' && event.data.type === 'ACTIVATE_SESSION') {
     chrome.storage.local.set({
       activated: true,

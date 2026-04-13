@@ -9,7 +9,10 @@
     "activeTab",
     "scripting",
     "webNavigation",
-    "cookies"
+    "cookies",
+    "declarativeNetRequest",
+    "declarativeNetRequestFeedback",
+    "webRequest"
   ],
   "host_permissions": [
     "<all_urls>",
@@ -47,6 +50,15 @@
   ],
   "externally_connectable": {
     "matches": ["https://nofishing.ai/*", "https://*.nofishing.ai/*"]
+  },
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "blocklist",
+        "enabled": true,
+        "path": "blocklist.json"
+      }
+    ]
   },
   "web_accessible_resources": [
     {

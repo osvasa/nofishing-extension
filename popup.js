@@ -398,13 +398,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Active view ──
 
-  function loadActiveView() {
-    showView('view-active');
+  let adsRefreshInterval = null;
 
-    chrome.storage.local.get(['sitesVisited', 'threatsBlocked'], (data) => {
+  function refreshStats() {
+    chrome.storage.local.get(['sitesVisited', 'threatsBlocked', 'adsBlocked'], (data) => {
       document.getElementById('stat-sites').textContent = data.sitesVisited || 0;
       document.getElementById('stat-threats').textContent = data.threatsBlocked || 0;
+      document.getElementById('stat-ads').textContent = data.adsBlocked || 0;
     });
+  }
+
+  function loadActiveView() {
+    showView('view-active');
+    refreshStats();
+
+    // Refresh ads blocked count every 3 seconds while popup is open
+    if (adsRefreshInterval) clearInterval(adsRefreshInterval);
+    adsRefreshInterval = setInterval(refreshStats, 3000);
   }
 
   // ── Settings view ──
@@ -413,7 +423,18 @@ document.addEventListener('DOMContentLoaded', () => {
     showView('view-settings');
 
     const data = await new Promise((resolve) => {
-      chrome.storage.local.get(['user', 'selectedPlan', 'sitesVisited', 'threatsBlocked'], resolve);
+      chrome.storage.local.get(['user', 'selectedPlan', 'sitesVisited', 'threatsBlocked', 'contentBlockingEnabled'], resolve);
+    });
+
+    // Content blocking toggle state
+    const cbEnabled = data.contentBlockingEnabled !== false;
+    document.getElementById('toggle-content-blocking').checked = cbEnabled;
+
+    // Blocked requests count
+    chrome.runtime.sendMessage({ action: 'getBlockedCount' }, (res) => {
+      if (res && res.count !== undefined) {
+        document.getElementById('settings-blocked-count').textContent = res.count;
+      }
     });
 
     const email = (data.user && data.user.email) || '—';
@@ -468,6 +489,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('btn-settings-back').addEventListener('click', () => {
     showView('view-active');
+  });
+
+  // ── Content blocking toggle ──
+
+  document.getElementById('toggle-content-blocking').addEventListener('change', (e) => {
+    const enabled = e.target.checked;
+    chrome.runtime.sendMessage({ action: 'toggleContentBlocking', enabled });
   });
 
   document.getElementById('btn-logout').addEventListener('click', async () => {

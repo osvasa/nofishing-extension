@@ -54,7 +54,15 @@ const SAFE_DOMAINS = new Set([
 function extractRootDomain(hostname) {
   const parts = hostname.split('.');
   if (parts.length <= 2) return hostname;
-  return parts.slice(-2).join('.');
+  const ccSLDs = [
+    'co.uk', 'com.au', 'co.nz', 'co.za', 'com.br', 'co.jp',
+    'co.in', 'com.mx', 'co.kr', 'com.sg', 'com.hk', 'org.uk', 'net.au',
+  ];
+  const lastTwo = parts.slice(-2).join('.');
+  if (parts.length >= 3 && ccSLDs.includes(lastTwo)) {
+    return parts.slice(-3).join('.');
+  }
+  return lastTwo;
 }
 
 function levenshtein(a, b) {
@@ -215,6 +223,135 @@ function analyzeUrl(url) {
   if (fullUrl.includes('%00') || fullUrl.includes('%2e%2e')) {
     score += 25;
     reasons.push('Encoded traversal characters in URL');
+  }
+
+  // ── Smishing URL Pattern Detection ──
+
+  // 15. Fake delivery scams
+  const deliveryBrands = ['tracking', 'delivery', 'shipment', 'package', 'parcel', 'usps', 'fedex', 'ups', 'dhl'];
+  const deliveryActions = ['update', 'confirm', 'verify', 'hold', 'failed', 'reschedule', 'fee', 'pay'];
+  if (deliveryBrands.some((w) => fullUrl.includes(w)) && deliveryActions.some((w) => fullUrl.includes(w))) {
+    score += 25;
+    reasons.push('Fake delivery/shipping scam pattern detected');
+  }
+
+  // 16. Fake toll/fine scams
+  const tollKeywords = ['toll', 'ezpass', 'sunpass', 'fastrak', 'violation', 'fine', 'citation'];
+  const tollActions = ['pay', 'due', 'unpaid', 'overdue', 'balance'];
+  if (tollKeywords.some((w) => fullUrl.includes(w)) && tollActions.some((w) => fullUrl.includes(w))) {
+    score += 30;
+    reasons.push('Fake toll/fine payment scam pattern detected');
+  }
+
+  // 17. Fake bank/financial SMS scams
+  const bankAlerts = ['alert', 'notification', 'security', 'unusual', 'suspicious'];
+  const bankTargets = ['account', 'banking', 'card', 'transaction', 'transfer'];
+  if (bankAlerts.some((w) => fullUrl.includes(w)) && bankTargets.some((w) => fullUrl.includes(w))) {
+    score += 25;
+    reasons.push('Fake bank/financial alert scam pattern detected');
+  }
+
+  // 18. Fake subscription renewal scams
+  const subBrands = ['netflix', 'amazon', 'apple', 'spotify', 'hulu', 'disney'];
+  const subActions = ['renew', 'renewal', 'billing', 'update', 'expire', 'suspended', 'verify'];
+  const subBrandDomains = { netflix: 'netflix.com', amazon: 'amazon.com', apple: 'apple.com', spotify: 'spotify.com', hulu: 'hulu.com', disney: 'disney.com' };
+  const matchedSubBrand = subBrands.find((w) => fullUrl.includes(w));
+  if (matchedSubBrand && subActions.some((w) => fullUrl.includes(w))) {
+    if (rootDomain !== subBrandDomains[matchedSubBrand]) {
+      score += 20;
+      reasons.push('Fake ' + matchedSubBrand + ' subscription renewal scam pattern detected');
+    }
+  }
+
+  // 19. Fake prize/winner scams
+  const prizeKeywords = ['winner', 'won', 'prize', 'reward', 'gift', 'congratulation', 'selected', 'chosen'];
+  const prizeActions = ['claim', 'collect', 'redeem', 'free'];
+  if (prizeKeywords.some((w) => fullUrl.includes(w)) && prizeActions.some((w) => fullUrl.includes(w))) {
+    score += 35;
+    reasons.push('Fake prize/winner scam pattern detected');
+  }
+
+  // ── Crypto & Investment Scam Detection ──
+
+  const cryptoTokens = ['crypto', 'bitcoin', 'btc', 'eth', 'ethereum', 'usdt', 'wallet', 'coin', 'token', 'defi'];
+
+  // 20. Fake crypto trading platform
+  const tradingKeywords = ['trade', 'trading', 'invest', 'investment', 'profit', 'returns', 'yield', 'earn'];
+  if (tradingKeywords.some((w) => fullUrl.includes(w)) && cryptoTokens.some((w) => fullUrl.includes(w))) {
+    if (!SAFE_DOMAINS.has(hostname) && !SAFE_DOMAINS.has(rootDomain)) {
+      score += 35;
+      reasons.push('Fake crypto trading/investment platform pattern detected');
+    }
+  }
+
+  // 21. Fake crypto giveaway
+  const giveawayKeywords = ['giveaway', 'airdrop', 'free', 'bonus', 'double'];
+  const giveawayCrypto = ['bitcoin', 'btc', 'eth', 'crypto', 'coin', 'token'];
+  if (giveawayKeywords.some((w) => fullUrl.includes(w)) && giveawayCrypto.some((w) => fullUrl.includes(w))) {
+    score += 40;
+    reasons.push('Fake crypto giveaway/airdrop scam pattern detected');
+  }
+
+  // 22. Guaranteed returns scam
+  const guaranteedKeywords = ['guaranteed', 'guarantee', 'risk-free', 'riskfree', '100%', 'daily-profit', 'daily-returns', 'passive-income', 'get-rich'];
+  if (guaranteedKeywords.some((w) => fullUrl.includes(w))) {
+    score += 40;
+    reasons.push('Guaranteed returns/risk-free investment scam pattern detected');
+  }
+
+  // 23. Pig butchering / romance investment scam
+  const pigButcherKeywords = ['investment-club', 'trading-group', 'vip-trading', 'private-trading', 'exclusive-trade', 'members-only', 'insider-trade'];
+  if (pigButcherKeywords.some((w) => fullUrl.includes(w))) {
+    score += 30;
+    reasons.push('Exclusive/private trading group scam pattern detected');
+  }
+
+  // 24. Fake exchange/wallet
+  const exchangeActions = ['withdraw', 'withdrawal', 'deposit', 'stake', 'staking', 'mining', 'miner', 'pool'];
+  const exchangeCrypto = ['crypto', 'bitcoin', 'btc', 'eth', 'wallet', 'coin'];
+  const legitExchanges = ['coinbase.com', 'binance.com', 'kraken.com', 'crypto.com', 'gemini.com', 'blockchain.com'];
+  if (exchangeActions.some((w) => fullUrl.includes(w)) && exchangeCrypto.some((w) => fullUrl.includes(w))) {
+    if (!legitExchanges.includes(rootDomain)) {
+      score += 35;
+      reasons.push('Fake crypto exchange/wallet scam pattern detected');
+    }
+  }
+
+  // ── Calendar Scam Detection ──
+
+  // 25. Google Calendar phishing relay
+  const calendarInviteWords = ['invite', 'event', 'meeting', 'schedule'];
+  const calendarRedirectWords = ['click', 'link', 'redirect', 'go', 'url', 'visit'];
+  if (fullUrl.includes('calendar') && calendarInviteWords.some((w) => fullUrl.includes(w)) && calendarRedirectWords.some((w) => fullUrl.includes(w))) {
+    score += 35;
+    reasons.push('Google Calendar phishing relay pattern detected');
+  }
+
+  // 26. Google Forms/Drawings used as phishing relay
+  const formsHosts = ['docs.google.com', 'forms.gle', 'forms.google.com'];
+  const formsPathWords = ['forms', 'drawings'];
+  const formsScamWords = ['prize', 'winner', 'verify', 'confirm', 'account', 'suspend', 'bitcoin', 'crypto', 'payment', 'invoice', 'overdue'];
+  if (formsHosts.includes(hostname) && formsPathWords.some((w) => pathname.includes(w)) && formsScamWords.some((w) => fullUrl.includes(w))) {
+    score += 30;
+    reasons.push('Google Forms/Drawings used as phishing relay');
+  }
+
+  // 27. ICS/calendar file download from suspicious domain
+  const legitCalendarDomains = ['google.com', 'apple.com', 'microsoft.com', 'outlook.com', 'yahoo.com', 'zoom.us', 'calendly.com'];
+  if (pathname.endsWith('.ics') && !legitCalendarDomains.includes(rootDomain)) {
+    score += 35;
+    reasons.push('Calendar file (.ics) download from suspicious domain');
+  }
+
+  // 28. Fake meeting/webinar link
+  const meetingBrands = ['zoom', 'teams', 'webex', 'meet', 'gotomeeting', 'webinar'];
+  const meetingScamWords = ['free', 'prize', 'winner', 'claim', 'verify', 'account', 'suspended', 'bitcoin', 'crypto', 'urgent', 'immediate'];
+  const legitMeetingDomains = ['zoom.us', 'microsoft.com', 'webex.com', 'google.com', 'gotomeeting.com'];
+  if (meetingBrands.some((w) => fullUrl.includes(w)) && meetingScamWords.some((w) => fullUrl.includes(w))) {
+    if (!legitMeetingDomains.includes(rootDomain)) {
+      score += 25;
+      reasons.push('Fake meeting/webinar link with scam keywords detected');
+    }
   }
 
   // Determine threat level
@@ -398,3 +535,111 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     chrome.tabs.remove(sender.tab.id);
   }
 });
+
+// ── Content Blocking (Ad/Tracker Blocking) ──
+
+// Initialize default state
+chrome.storage.local.get(['contentBlockingEnabled'], (data) => {
+  if (data.contentBlockingEnabled === undefined) {
+    chrome.storage.local.set({ contentBlockingEnabled: true });
+  }
+});
+
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg.action === 'toggleContentBlocking') {
+    const enabled = msg.enabled;
+    chrome.storage.local.set({ contentBlockingEnabled: enabled });
+
+    if (enabled) {
+      chrome.declarativeNetRequest.updateEnabledRulesets({
+        enableRulesetIds: ['blocklist'],
+      }).then(() => sendResponse({ ok: true }))
+        .catch((err) => sendResponse({ ok: false, error: err.message }));
+    } else {
+      chrome.declarativeNetRequest.updateEnabledRulesets({
+        disableRulesetIds: ['blocklist'],
+      }).then(() => sendResponse({ ok: true }))
+        .catch((err) => sendResponse({ ok: false, error: err.message }));
+    }
+    return true;
+  }
+
+  if (msg.action === 'getBlockedCount') {
+    chrome.storage.local.get(['adsBlocked'], (data) => {
+      sendResponse({ count: data.adsBlocked || 0 });
+    });
+    return true;
+  }
+});
+
+// ── Ads Blocked Counter (webRequest observer) ──
+
+const BLOCKED_DOMAINS = [
+  'googleadservices.com', 'googlesyndication.com', 'doubleclick.net',
+  'googletagmanager.com', 'google-analytics.com', 'googletagservices.com',
+  'adservice.google.com', 'pagead2.googlesyndication.com',
+  'facebook.net', 'connect.facebook.net', 'pixel.facebook.com',
+  'amazon-adsystem.com', 'aax.amazon.com',
+  'outbrain.com', 'taboola.com', 'scorecardresearch.com', 'quantserve.com',
+  'hotjar.com', 'mixpanel.com', 'segment.io', 'segment.com', 'cdn.segment.com',
+  'amplitude.com', 'heapanalytics.com', 'fullstory.com', 'crazyegg.com',
+  'mouseflow.com', 'clarity.ms', 'criteo.com', 'criteo.net',
+  'adnxs.com', 'adsrvr.org', 'rubiconproject.com', 'pubmatic.com',
+  'openx.net', 'casalemedia.com', 'indexexchange.com', 'bidswitch.net',
+  'sharethrough.com', 'smartadserver.com', 'mediavine.com',
+  'moatads.com', 'doubleverify.com', 'adsafeprotected.com',
+  'adform.net', 'advertising.com', 'contextweb.com', 'mathtag.com',
+  'serving-sys.com', 'demdex.net', 'omtrdc.net', 'everesttech.net',
+  'bluekai.com', 'krxd.net', 'exelator.com', 'rlcdn.com',
+  'eyeota.net', 'tapad.com', 'agkn.com', 'bounceexchange.com',
+  'turn.com', 'adroll.com', 'steelhousemedia.com',
+  'matomo.cloud', 'newrelic.com', 'nr-data.net',
+  'intercom.io', 'intercomcdn.com', 'drift.com',
+  'hs-analytics.net', 'hs-banner.com', 'optimizely.com',
+  'kissmetrics.com', 'chartbeat.com', 'parsely.com',
+  'treasuredata.com', 'branch.io', 'appsflyer.com', 'adjust.com',
+  'mxpnl.com', 'onesignal.com', 'pushwoosh.com',
+  'adcolony.com', 'inmobi.com', 'mopub.com',
+  'conviva.com', 'liadm.com', 'pippio.com',
+  'yieldmo.com', 'smaato.net', 'revjet.com',
+  'lijit.com', 'sovrn.com',
+];
+
+let contentBlockingCache = true;
+
+// Keep cached state in sync
+chrome.storage.local.get(['contentBlockingEnabled'], (data) => {
+  contentBlockingCache = data.contentBlockingEnabled !== false;
+});
+chrome.storage.onChanged.addListener((changes) => {
+  if (changes.contentBlockingEnabled) {
+    contentBlockingCache = changes.contentBlockingEnabled.newValue !== false;
+  }
+});
+
+function matchesBlockedDomain(hostname) {
+  for (const domain of BLOCKED_DOMAINS) {
+    if (hostname === domain || hostname.endsWith('.' + domain)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+if (chrome.webRequest && chrome.webRequest.onBeforeRequest) {
+  chrome.webRequest.onBeforeRequest.addListener(
+    (details) => {
+      if (!contentBlockingCache) return;
+
+      try {
+        const url = new URL(details.url);
+        if (matchesBlockedDomain(url.hostname)) {
+          chrome.storage.local.get(['adsBlocked'], (data) => {
+            chrome.storage.local.set({ adsBlocked: (data.adsBlocked || 0) + 1 });
+          });
+        }
+      } catch { /* invalid URL, ignore */ }
+    },
+    { urls: ['<all_urls>'], types: ['script', 'image', 'xmlhttprequest', 'sub_frame', 'stylesheet', 'font', 'media', 'websocket', 'other'] }
+  );
+}
