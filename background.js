@@ -59,6 +59,9 @@ const SAFE_DOMAINS = new Set([
   'ups.com', 'www.ups.com', 'fedex.com', 'www.fedex.com',
   'dhl.com', 'www.dhl.com', 'usps.com', 'www.usps.com',
   'ebay.com', 'www.ebay.com',
+  'zoom.com', 'www.zoom.com',
+  'office.com', 'www.office.com', 'live.com', 'www.live.com',
+  'hotmail.com', 'www.hotmail.com', 'outlook.com', 'www.outlook.com',
 ]);
 
 function extractRootDomain(hostname) {
@@ -127,21 +130,21 @@ function analyzeUrl(url) {
   // 1. IP address as hostname
   if (/^\d{1,3}(\.\d{1,3}){3}$/.test(hostname)) {
     score += 40;
-    reasons.push('IP address used instead of domain name');
+    reasons.push('This site uses a raw IP address instead of a real domain name — a classic scam trick');
   }
 
   // 2. Suspicious TLD
   const tld = '.' + hostname.split('.').pop();
   if (SUSPICIOUS_TLDS.includes(tld)) {
     score += 20;
-    reasons.push('Suspicious top-level domain: ' + tld);
+    reasons.push('This site uses a cheap, untrustworthy web address (' + tld + ') commonly used by scammers');
   }
 
   // 3. Excessive subdomains (more than 3 parts)
   const domainParts = hostname.split('.');
   if (domainParts.length > 3) {
     score += 15;
-    reasons.push('Excessive subdomains (' + domainParts.length + ' levels)');
+    reasons.push('This site has an unusually complex web address designed to look legitimate');
   }
 
   // 4. Hyphens in domain (common in phishing)
@@ -149,7 +152,7 @@ function analyzeUrl(url) {
   const hyphenCount = (mainDomain.match(/-/g) || []).length;
   if (hyphenCount >= 2) {
     score += 15;
-    reasons.push('Multiple hyphens in domain name');
+    reasons.push('Scammers use multiple hyphens in web addresses to impersonate real brands');
   }
 
   // 5. Phishing keywords in hostname or path
@@ -161,10 +164,10 @@ function analyzeUrl(url) {
   }
   if (keywordHits >= 3) {
     score += 30;
-    reasons.push('Multiple phishing keywords detected (' + keywordHits + ')');
+    reasons.push('This web address is loaded with phishing trigger words — a major red flag');
   } else if (keywordHits >= 1) {
     score += 10 * keywordHits;
-    reasons.push('Phishing keyword' + (keywordHits > 1 ? 's' : '') + ' in URL');
+    reasons.push(keywordHits > 1 ? 'This web address contains multiple words commonly used to steal passwords' : 'This web address contains a word commonly used in phishing scams');
   }
 
   // 6. Typosquatting detection via Levenshtein distance
@@ -174,7 +177,7 @@ function analyzeUrl(url) {
     const dist = levenshtein(rootDomain.replace(/\.[^.]+$/, ''), legit.replace(/\.[^.]+$/, ''));
     if (dist > 0 && dist <= 2) {
       score += 35;
-      reasons.push('Domain similar to ' + legit + ' (possible typosquatting)');
+      reasons.push('This site has a web address almost identical to ' + legit + ' — designed to trick you');
       break;
     }
   }
@@ -184,7 +187,7 @@ function analyzeUrl(url) {
     const brand = legit.replace(/\.[^.]+$/, '');
     if (hostname.includes(brand) && extractRootDomain(hostname) !== legit) {
       score += 30;
-      reasons.push('Contains "' + brand + '" but hosted on different domain');
+      reasons.push('This site is pretending to be ' + brand + ' but it\'s a fake');
       break;
     }
   }
@@ -192,47 +195,47 @@ function analyzeUrl(url) {
   // 8. URL shortener
   if (URL_SHORTENERS.some((s) => hostname === s || hostname.endsWith('.' + s))) {
     score += 15;
-    reasons.push('URL shortener detected — destination unknown');
+    reasons.push('This link has been hidden behind a URL shortener — scammers do this to disguise dangerous destinations');
   }
 
   // 9. Punycode / internationalized domain (homograph attack)
   if (hostname.startsWith('xn--')) {
     score += 30;
-    reasons.push('Internationalized domain name (possible homograph attack)');
+    reasons.push('This site uses special characters to disguise its web address and impersonate a trusted brand');
   }
 
   // 10. Very long URL (common in phishing kits)
   if (fullUrl.length > 200) {
     score += 10;
-    reasons.push('Unusually long URL (' + fullUrl.length + ' characters)');
+    reasons.push('This web address is unusually long — scammers do this to hide what site you\'re really visiting');
   }
 
   // 11. @ symbol in URL (credential prefix trick)
   if (fullUrl.includes('@')) {
     score += 25;
-    reasons.push('URL contains @ symbol (credential prefix trick)');
+    reasons.push('This web address contains an @ symbol — a trick used to disguise the real destination');
   }
 
   // 12. Data URI or javascript protocol in href
   if (parsedUrl.protocol === 'data:' || parsedUrl.protocol === 'javascript:') {
     score += 50;
-    reasons.push('Dangerous protocol: ' + parsedUrl.protocol);
+    reasons.push('This link uses a dangerous protocol that can run malicious code on your device');
   }
 
   // 13. HTTP on sensitive-looking page
   if (parsedUrl.protocol === 'http:' && keywordHits > 0) {
     score += 15;
-    reasons.push('Unencrypted connection on a login/verification page');
+    reasons.push('This site is asking for sensitive information without encryption — your data would be exposed');
   }
 
   // 14. Double extension or encoded characters in path
   if (pathname.match(/\.(html|php|asp)\./)) {
     score += 20;
-    reasons.push('Suspicious double file extension in URL path');
+    reasons.push('This site uses a fake file extension in its address to disguise malicious content');
   }
   if (fullUrl.includes('%00') || fullUrl.includes('%2e%2e')) {
     score += 25;
-    reasons.push('Encoded traversal characters in URL');
+    reasons.push('This site uses a fake file extension in its address to disguise malicious content');
   }
 
   // ── Smishing URL Pattern Detection ──
@@ -242,7 +245,7 @@ function analyzeUrl(url) {
   const deliveryActions = ['update', 'confirm', 'verify', 'hold', 'failed', 'reschedule', 'fee', 'pay'];
   if (deliveryBrands.some((w) => fullUrl.includes(w)) && deliveryActions.some((w) => fullUrl.includes(w))) {
     score += 25;
-    reasons.push('Fake delivery/shipping scam pattern detected');
+    reasons.push('This site is impersonating a delivery company to steal your payment information');
   }
 
   // 16. Fake toll/fine scams
@@ -250,7 +253,7 @@ function analyzeUrl(url) {
   const tollActions = ['pay', 'due', 'unpaid', 'overdue', 'balance'];
   if (tollKeywords.some((w) => fullUrl.includes(w)) && tollActions.some((w) => fullUrl.includes(w))) {
     score += 30;
-    reasons.push('Fake toll/fine payment scam pattern detected');
+    reasons.push('This site is impersonating a toll or government service to steal your money');
   }
 
   // 17. Fake bank/financial SMS scams
@@ -258,7 +261,7 @@ function analyzeUrl(url) {
   const bankTargets = ['account', 'banking', 'card', 'transaction', 'transfer'];
   if (bankAlerts.some((w) => fullUrl.includes(w)) && bankTargets.some((w) => fullUrl.includes(w))) {
     score += 25;
-    reasons.push('Fake bank/financial alert scam pattern detected');
+    reasons.push('This site is pretending to be your bank to steal your login credentials');
   }
 
   // 18. Fake subscription renewal scams
@@ -269,7 +272,7 @@ function analyzeUrl(url) {
   if (matchedSubBrand && subActions.some((w) => fullUrl.includes(w))) {
     if (rootDomain !== subBrandDomains[matchedSubBrand]) {
       score += 20;
-      reasons.push('Fake ' + matchedSubBrand + ' subscription renewal scam pattern detected');
+      reasons.push('This site is impersonating ' + matchedSubBrand + ' to steal your payment details');
     }
   }
 
@@ -278,7 +281,7 @@ function analyzeUrl(url) {
   const prizeActions = ['claim', 'collect', 'redeem', 'free'];
   if (prizeKeywords.some((w) => fullUrl.includes(w)) && prizeActions.some((w) => fullUrl.includes(w))) {
     score += 35;
-    reasons.push('Fake prize/winner scam pattern detected');
+    reasons.push('This is a fake prize scam designed to steal your personal information');
   }
 
   // ── Crypto & Investment Scam Detection ──
@@ -290,7 +293,7 @@ function analyzeUrl(url) {
   if (tradingKeywords.some((w) => fullUrl.includes(w)) && cryptoTokens.some((w) => fullUrl.includes(w))) {
     if (!SAFE_DOMAINS.has(hostname) && !SAFE_DOMAINS.has(rootDomain)) {
       score += 35;
-      reasons.push('Fake crypto trading/investment platform pattern detected');
+      reasons.push('This site is a fake cryptocurrency platform designed to steal your money');
     }
   }
 
@@ -299,21 +302,21 @@ function analyzeUrl(url) {
   const giveawayCrypto = ['bitcoin', 'btc', 'eth', 'crypto', 'coin', 'token'];
   if (giveawayKeywords.some((w) => fullUrl.includes(w)) && giveawayCrypto.some((w) => fullUrl.includes(w))) {
     score += 40;
-    reasons.push('Fake crypto giveaway/airdrop scam pattern detected');
+    reasons.push('This is a fake crypto giveaway — a common scam to steal your wallet or money');
   }
 
   // 22. Guaranteed returns scam
   const guaranteedKeywords = ['guaranteed', 'guarantee', 'risk-free', 'riskfree', '100%', 'daily-profit', 'daily-returns', 'passive-income', 'get-rich'];
   if (guaranteedKeywords.some((w) => fullUrl.includes(w))) {
     score += 40;
-    reasons.push('Guaranteed returns/risk-free investment scam pattern detected');
+    reasons.push('This site promises guaranteed investment returns — a guaranteed scam');
   }
 
   // 23. Pig butchering / romance investment scam
   const pigButcherKeywords = ['investment-club', 'trading-group', 'vip-trading', 'private-trading', 'exclusive-trade', 'members-only', 'insider-trade'];
   if (pigButcherKeywords.some((w) => fullUrl.includes(w))) {
     score += 30;
-    reasons.push('Exclusive/private trading group scam pattern detected');
+    reasons.push('This site shows signs of a romance investment scam — one of the most financially devastating scams');
   }
 
   // 24. Fake exchange/wallet
@@ -323,7 +326,7 @@ function analyzeUrl(url) {
   if (exchangeActions.some((w) => fullUrl.includes(w)) && exchangeCrypto.some((w) => fullUrl.includes(w))) {
     if (!legitExchanges.includes(rootDomain)) {
       score += 35;
-      reasons.push('Fake crypto exchange/wallet scam pattern detected');
+      reasons.push('This site is impersonating a crypto exchange to steal your funds');
     }
   }
 
@@ -334,7 +337,7 @@ function analyzeUrl(url) {
   const calendarRedirectWords = ['click', 'link', 'redirect', 'go', 'url', 'visit'];
   if (fullUrl.includes('calendar') && calendarInviteWords.some((w) => fullUrl.includes(w)) && calendarRedirectWords.some((w) => fullUrl.includes(w))) {
     score += 35;
-    reasons.push('Google Calendar phishing relay pattern detected');
+    reasons.push('This link came through Google Calendar — a new trick scammers use to bypass email filters');
   }
 
   // 26. Google Forms/Drawings used as phishing relay
@@ -343,14 +346,14 @@ function analyzeUrl(url) {
   const formsScamWords = ['prize', 'winner', 'verify', 'confirm', 'account', 'suspend', 'bitcoin', 'crypto', 'payment', 'invoice', 'overdue'];
   if (formsHosts.includes(hostname) && formsPathWords.some((w) => pathname.includes(w)) && formsScamWords.some((w) => fullUrl.includes(w))) {
     score += 30;
-    reasons.push('Google Forms/Drawings used as phishing relay');
+    reasons.push('This link is routing through Google Forms to disguise a phishing destination');
   }
 
   // 27. ICS/calendar file download from suspicious domain
   const legitCalendarDomains = ['google.com', 'apple.com', 'microsoft.com', 'outlook.com', 'yahoo.com', 'zoom.us', 'calendly.com'];
   if (pathname.endsWith('.ics') && !legitCalendarDomains.includes(rootDomain)) {
     score += 35;
-    reasons.push('Calendar file (.ics) download from suspicious domain');
+    reasons.push('This calendar file is from an untrusted source and may add malicious events to your calendar');
   }
 
   // 28. Fake meeting/webinar link
@@ -360,7 +363,7 @@ function analyzeUrl(url) {
   if (meetingBrands.some((w) => fullUrl.includes(w)) && meetingScamWords.some((w) => fullUrl.includes(w))) {
     if (!legitMeetingDomains.includes(rootDomain)) {
       score += 25;
-      reasons.push('Fake meeting/webinar link with scam keywords detected');
+      reasons.push('This site is impersonating a video meeting platform to steal your credentials');
     }
   }
 
