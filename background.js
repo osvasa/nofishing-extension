@@ -5,6 +5,13 @@ chrome.runtime.onInstalled.addListener(() => {
   if (chrome.action && chrome.action.openPopup) {
     chrome.action.openPopup().catch(() => {});
   }
+
+  // Generate unique device ID on first install
+  chrome.storage.local.get(['deviceId'], (data) => {
+    if (!data.deviceId) {
+      chrome.storage.local.set({ deviceId: crypto.randomUUID() });
+    }
+  });
 });
 
 // ── Heuristic Engine ──
@@ -643,3 +650,110 @@ if (chrome.webRequest && chrome.webRequest.onBeforeRequest) {
     { urls: ['<all_urls>'], types: ['script', 'image', 'xmlhttprequest', 'sub_frame', 'stylesheet', 'font', 'media', 'websocket', 'other'] }
   );
 }
+
+// ── Device Registration ──
+
+function getDeviceName() {
+  const ua = navigator.userAgent;
+  let os = 'Unknown OS';
+  if (ua.includes('Mac OS X')) os = 'Mac';
+  else if (ua.includes('Windows')) os = 'Windows';
+  else if (ua.includes('Linux')) os = 'Linux';
+  else if (ua.includes('CrOS')) os = 'ChromeOS';
+
+  let browser = 'Unknown Browser';
+  if (ua.includes('Edg/')) browser = 'Edge';
+  else if (ua.includes('Firefox/')) browser = 'Firefox';
+  else if (ua.includes('Safari/') && !ua.includes('Chrome')) browser = 'Safari';
+  else if (ua.includes('Chrome/')) browser = 'Chrome';
+
+  return os + ' — ' + browser;
+}
+
+function registerDevice() {
+  chrome.storage.local.get(['deviceId', 'user', 'activated', 'deviceRegistered'], (data) => {
+    if (!data.activated || !data.user || !data.user.email || !data.deviceId) return;
+
+    const email = data.user.email;
+    const deviceId = data.deviceId;
+    const deviceName = getDeviceName();
+
+    fetch('https://nofishing.ai/api/register-device', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: email,
+        device_id: deviceId,
+        device_type: 'desktop',
+        device_name: deviceName,
+      }),
+    })
+    .then((res) => res.json())
+    .then((result) => {
+      if (result.success) {
+        chrome.storage.local.set({ deviceRegistered: true });
+      } else if (result.error === 'device_limit_reached') {
+        chrome.storage.local.set({ deviceLimitReached: true, registeredDevices: result.devices });
+      }
+    })
+    .catch(() => { /* network error — will retry on next navigation */ });
+  });
+}
+
+// Register device on activation and periodically update last_seen
+chrome.storage.onChanged.addListener((changes) => {
+  if (changes.activated && changes.activated.newValue === true) {
+    registerDevice();
+  }
+});
+
+// Also attempt registration on service worker startup (covers restarts)
+chrome.storage.local.get(['activated'], (data) => {
+  if (data.activated) {
+    registerDevice();
+  }
+});
+
+// Message handler for device management from popup
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg.action === 'removeDevice') {
+    chrome.storage.local.get(['user'], (data) => {
+      if (!data.user || !data.user.email || !msg.deviceId) {
+        sendResponse({ ok: false });
+        return;
+      }
+
+      fetch('https://nofishing.ai/api/remove-device', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: data.user.email,
+          device_id: msg.deviceId,
+        }),
+      })
+      .then((res) => res.json())
+      .then((result) => {
+        if (result.success) {
+          chrome.storage.local.remove(['deviceLimitReached', 'registeredDevices']);
+          registerDevice(); // Re-register this device now that a slot is free
+        }
+        sendResponse({ ok: result.success });
+      })
+      .catch(() => sendResponse({ ok: false }));
+    });
+    return true;
+  }
+
+  if (msg.action === 'getDeviceInfo') {
+    chrome.storage.local.get(['deviceId', 'deviceRegistered', 'deviceLimitReached', 'registeredDevices'], (data) => {
+      sendResponse({
+        deviceId: data.deviceId || null,
+        deviceRegistered: data.deviceRegistered || false,
+        deviceLimitReached: data.deviceLimitReached || false,
+        registeredDevices: data.registeredDevices || [],
+        deviceName: getDeviceName(),
+      });
+    });
+    return true;
+  }
+});

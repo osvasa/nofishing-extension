@@ -359,6 +359,38 @@ body {
 
 .btn-waiting:hover { opacity: 0.9; }
 
+.device-limit-error {
+  display: none;
+  background: rgba(236,34,12,0.1);
+  border: 1px solid #EC220C;
+  border-radius: 10px;
+  padding: 16px;
+  margin-top: 16px;
+  text-align: center;
+}
+.device-limit-error.show { display: block; }
+.device-limit-error p {
+  font-size: 12px;
+  color: rgba(255,255,255,0.8);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+.device-limit-error .btn-manage-devices {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  background: #EC220C;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.device-limit-error .btn-manage-devices:hover { opacity: 0.9; }
+
 /* ── VIEW: Active / Protection Status ── */
 .active-header {
   width: 100%;
@@ -573,6 +605,74 @@ body {
   transform: translateX(18px);
 }
 
+/* ── QR Scanner ── */
+.btn-qr-scan {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  background: #3a3a3a;
+  color: #ffffff;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-bottom: 12px;
+  letter-spacing: 0.02em;
+}
+.btn-qr-scan:hover { background: #4a4a4a; }
+
+#qr-scanner-container {
+  display: none;
+  background: #222;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+  text-align: center;
+}
+#qr-scanner-container.active { display: block; }
+
+#qr-video {
+  width: 100%;
+  max-height: 200px;
+  border-radius: 8px;
+  background: #000;
+  object-fit: cover;
+}
+
+#qr-result {
+  font-size: 12px;
+  line-height: 1.6;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  word-break: break-all;
+  display: none;
+}
+#qr-result.show { display: block; }
+#qr-result.safe { background: rgba(34,197,94,0.15); color: #22C55E; }
+#qr-result.warning { background: rgba(245,158,11,0.15); color: #F59E0B; }
+#qr-result.danger { background: rgba(236,34,12,0.15); color: #EC220C; }
+
+.btn-qr-stop {
+  display: inline-block;
+  padding: 8px 20px;
+  background: #EC220C;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: opacity 0.15s;
+}
+.btn-qr-stop:hover { opacity: 0.9; }
+
 .settings-logout {
   display: block;
   width: 100%;
@@ -731,6 +831,12 @@ body {
     <div class="screen-title">Full Protection — One Step Away</div>
     <p class="screen-sub">Complete your payment in the browser tab to activate your protection.</p>
     <button class="btn-waiting" id="btn-open-payment">Complete My Protection &rarr;</button>
+
+    <div class="device-limit-error" id="device-limit-error">
+      <p>Device limit reached. You already have 2 devices registered. Remove a device to activate this one.</p>
+      <button class="btn-manage-devices" id="btn-manage-devices">Manage Devices</button>
+    </div>
+
     <div class="screen-footer">NøFishing AI v1.0.0</div>
   </div>
 </div>
@@ -807,6 +913,15 @@ body {
         <div class="active-stat-label">Ads Blocked</div>
       </div>
     </div>
+    <button class="btn-qr-scan" id="btn-qr-scan"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>Scan QR Code</button>
+
+    <div id="qr-scanner-container">
+      <video id="qr-video" autoplay playsinline></video>
+      <canvas id="qr-canvas" style="display:none"></canvas>
+      <p id="qr-result"></p>
+      <button class="btn-qr-stop" id="qr-stop-btn">Stop Scanning</button>
+    </div>
+
     <div class="active-msg">NøFishing AI is running silently, protecting you.</div>
     <img src="icons/fish-no-symbol-red.png" style="width:80px;height:80px;display:block;margin:0 auto 24px auto;">
     <div class="active-footer">NøFishing AI v1.0.0</div>
@@ -887,6 +1002,7 @@ body {
 </div>
 
 <script src="supabase.js"></script>
+<script src="jsqr.js"></script>
 <script src="popup.js"></script>
 </body>
 </html>

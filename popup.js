@@ -498,6 +498,112 @@ document.addEventListener('DOMContentLoaded', () => {
     chrome.runtime.sendMessage({ action: 'toggleContentBlocking', enabled });
   });
 
+  // ── QR Code Scanner ──
+
+  let qrStream = null;
+  let qrAnimFrame = null;
+
+  function startQRScanner() {
+    const container = document.getElementById('qr-scanner-container');
+    const video = document.getElementById('qr-video');
+    const canvas = document.getElementById('qr-canvas');
+    const ctx = canvas.getContext('2d');
+    const resultEl = document.getElementById('qr-result');
+
+    container.classList.add('active');
+    resultEl.className = '';
+    resultEl.textContent = '';
+
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+      .then((stream) => {
+        qrStream = stream;
+        video.srcObject = stream;
+        video.play();
+        scanFrame();
+      })
+      .catch((err) => {
+        resultEl.className = 'show danger';
+        resultEl.textContent = 'Camera access denied: ' + err.message;
+      });
+
+    function scanFrame() {
+      if (!qrStream) return;
+
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+        if (typeof jsQR === 'function') {
+          const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
+          if (code && code.data) {
+            handleQRResult(code.data);
+            return;
+          }
+        }
+      }
+
+      qrAnimFrame = setTimeout(scanFrame, 200);
+    }
+  }
+
+  function handleQRResult(data) {
+    const resultEl = document.getElementById('qr-result');
+    stopQRCamera();
+
+    // Check if it looks like a URL
+    let url = data;
+    if (!/^https?:\/\//i.test(url) && /^[a-z0-9].*\.[a-z]{2,}/i.test(url)) {
+      url = 'http://' + url;
+    }
+
+    if (/^https?:\/\//i.test(url)) {
+      chrome.runtime.sendMessage({ action: 'analyzeUrl', url: url }, (res) => {
+        const level = (res && res.level) || 'safe';
+        const score = (res && res.score) || 0;
+        const reasons = (res && res.reasons) || [];
+        resultEl.className = 'show ' + level;
+
+        let verdict = level === 'safe' ? 'SAFE' : level === 'warning' ? 'WARNING' : 'DANGER';
+        let html = '<strong>' + verdict + ' (score: ' + score + ')</strong><br/>' + escapeHtmlPopup(url);
+        if (reasons.length > 0) {
+          html += '<br/><br/>' + reasons.map((r) => '• ' + escapeHtmlPopup(r)).join('<br/>');
+        }
+        resultEl.innerHTML = html;
+      });
+    } else {
+      resultEl.className = 'show safe';
+      resultEl.innerHTML = '<strong>QR Content (not a URL):</strong><br/>' + escapeHtmlPopup(data);
+    }
+  }
+
+  function escapeHtmlPopup(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function stopQRCamera() {
+    if (qrAnimFrame) { clearTimeout(qrAnimFrame); qrAnimFrame = null; }
+    if (qrStream) {
+      qrStream.getTracks().forEach((t) => t.stop());
+      qrStream = null;
+    }
+    const video = document.getElementById('qr-video');
+    if (video) video.srcObject = null;
+  }
+
+  function stopQRScanner() {
+    stopQRCamera();
+    document.getElementById('qr-scanner-container').classList.remove('active');
+    document.getElementById('qr-result').className = '';
+    document.getElementById('qr-result').textContent = '';
+  }
+
+  document.getElementById('btn-qr-scan').addEventListener('click', startQRScanner);
+  document.getElementById('qr-stop-btn').addEventListener('click', stopQRScanner);
+
   document.getElementById('btn-logout').addEventListener('click', async () => {
     if (sbClient) await sbClient.auth.signOut();
     chrome.storage.local.clear(() => {
@@ -507,13 +613,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Initial load: check Supabase session ──
 
+  function showDeviceLimitError() {
+    showView('view-waiting');
+    document.getElementById('device-limit-error').classList.add('show');
+    document.getElementById('btn-open-payment').style.display = 'none';
+  }
+
+  document.getElementById('btn-manage-devices').addEventListener('click', () => {
+    chrome.tabs.create({ url: 'https://nofishing.ai/app' });
+  });
+
+  // Listen for device limit changes while popup is open
+  chrome.storage.onChanged.addListener((changes) => {
+    if (changes.deviceLimitReached && changes.deviceLimitReached.newValue === true) {
+      showDeviceLimitError();
+    }
+  });
+
   async function initPopup() {
     // Fast path: check local storage first
     const localData = await new Promise((resolve) => {
-      chrome.storage.local.get(['activated', 'user', 'paymentEmail'], resolve);
+      chrome.storage.local.get(['activated', 'user', 'paymentEmail', 'deviceLimitReached'], resolve);
     });
 
     if (localData.activated === true) {
+      if (localData.deviceLimitReached === true) {
+        showDeviceLimitError();
+        return;
+      }
       loadActiveView();
       return;
     }
