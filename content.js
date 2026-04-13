@@ -22,8 +22,9 @@
     const isDanger = data.level === 'danger';
     const iconUrl = chrome.runtime.getURL('icons/fish-no-symbol-red.png');
     const logoUrl = chrome.runtime.getURL('icons/logo.png');
-    const dangerMsg = firstName
-      ? escapeHtml(firstName) + ', this site is actively trying to steal your passwords, financial information, and personal data. Do not type anything. Leave now.'
+    const displayName = firstName ? firstName.charAt(0).toUpperCase() + firstName.slice(1) : '';
+    const dangerMsg = displayName
+      ? escapeHtml(displayName) + ', this site is actively trying to steal your passwords, financial information, and personal data. Do not type anything. Leave now.'
       : 'This site is actively trying to steal your passwords, financial information, and personal data. Do not type anything. Leave now.';
 
     overlayEl = document.createElement('div');
@@ -52,11 +53,6 @@
             : 'This site shows signs of being potentially unsafe. Proceed with caution.'
           }</p>
 
-          <div class="nf-url-box">
-            <span class="nf-url-label">Flagged URL</span>
-            <span class="nf-url-value">${escapeHtml(truncateUrl(data.url || window.location.href, 80))}</span>
-          </div>
-
           <div class="nf-score-bar">
             <span class="nf-score-label">Threat Score</span>
             <div class="nf-score-track">
@@ -65,18 +61,21 @@
             <span class="nf-score-value">${data.score}/100</span>
           </div>
 
+          <div class="nf-url-box">
+            <span class="nf-url-label">Flagged URL</span>
+            <span class="nf-url-value">${escapeHtml(truncateUrl(data.url || window.location.href, 80))}</span>
+          </div>
+
           ${reasonsList ? `
             <div class="nf-reasons">
               <span class="nf-reasons-label">Why this was flagged</span>
               <ul class="nf-reasons-list">${reasonsList}</ul>
             </div>
           ` : ''}
-
-          <div class="nf-branding">Protected by NøFishing AI</div>
         </div>
 
         <div class="nf-card-footer">
-          <div class="nf-divider" style="margin-bottom:16px"></div>
+          <div class="nf-branding">Protected by NøFishing AI</div>
           <div class="nf-actions">
             ${isDanger
               ? '<button class="nf-btn nf-btn-close">CLOSE THIS SITE</button>'
