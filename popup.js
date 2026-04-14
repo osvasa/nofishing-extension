@@ -478,7 +478,7 @@ document.addEventListener('DOMContentLoaded', () => {
               document.getElementById('settings-license').textContent =
                 'NFAI-' + clean.substring(0, 4).toUpperCase() + '-' + clean.substring(4, 8).toUpperCase();
             }
-            document.getElementById('settings-coverage').textContent = 'All websites · Real-time AI · Ads & trackers blocked · 1 device';
+            document.getElementById('settings-coverage').innerHTML = 'All websites · Real-time AI<br>Ads & trackers blocked · 1 device';
           }
         }
       } catch (err) {
