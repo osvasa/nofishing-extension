@@ -8,9 +8,7 @@
     "tabs",
     "activeTab",
     "webNavigation",
-    "cookies",
     "declarativeNetRequest",
-    "declarativeNetRequestFeedback",
     "webRequest"
   ],
   "host_permissions": [
