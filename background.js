@@ -96,7 +96,7 @@ function levenshtein(a, b) {
   return dp[m][n];
 }
 
-function analyzeUrl(url) {
+async function analyzeUrl(url) {
   let parsedUrl;
   try {
     parsedUrl = new URL(url);
@@ -378,6 +378,37 @@ function analyzeUrl(url) {
     level = 'warning';
   }
 
+  // ── AI Analysis for Grey Zone URLs (score 30–59) ──
+  if (score >= 30 && score <= 59) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+
+      const aiResponse = await fetch('https://nofishing.ai/api/analyze-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url, score, reasons }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+
+      const aiResult = await aiResponse.json();
+
+      if (aiResult.level === 'danger') {
+        level = 'danger';
+        score = 70;
+        reasons.push('AI detected: ' + aiResult.reason);
+      } else if (aiResult.level === 'safe') {
+        level = 'safe';
+        score = 0;
+        reasons.length = 0;
+      }
+      // If 'warning' or anything else — keep heuristic result unchanged
+    } catch (_) {
+      // Network error or timeout — keep heuristic result unchanged
+    }
+  }
+
   return { level, score, reasons };
 }
 
@@ -400,7 +431,7 @@ chrome.webNavigation.onCompleted.addListener(async (details) => {
   const active = await isActivated();
   if (!active) return;
 
-  const result = analyzeUrl(details.url);
+  const result = await analyzeUrl(details.url);
   tabResults[details.tabId] = { url: details.url, ...result };
 
   // Increment sitesVisited counter
@@ -446,7 +477,7 @@ chrome.webNavigation.onErrorOccurred.addListener(async (details) => {
   const active = await isActivated();
   if (!active) return;
 
-  const result = analyzeUrl(details.url);
+  const result = await analyzeUrl(details.url);
   tabResults[details.tabId] = { url: details.url, ...result };
 
   updateBadge(details.tabId, result.level);
@@ -518,7 +549,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         sendResponse({ activated: true, ...cached });
       } else {
         // Analyze on the fly
-        const result = analyzeUrl(tabs[0].url || '');
+        const result = await analyzeUrl(tabs[0].url || '');
         tabResults[tabId] = { url: tabs[0].url || '', ...result };
         updateBadge(tabId, result.level);
         sendResponse({ activated: true, url: tabs[0].url || '', ...result });
@@ -542,9 +573,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 
   if (msg.action === 'analyzeUrl') {
-    const result = analyzeUrl(msg.url);
-    sendResponse(result);
-    return false;
+    analyzeUrl(msg.url).then((result) => {
+      sendResponse(result);
+    });
+    return true;
   }
 
   if (msg.action === 'relayHttpWarning') {

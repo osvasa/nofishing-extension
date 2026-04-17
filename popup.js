@@ -479,7 +479,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 'NFAI-' + clean.substring(0, 4).toUpperCase() + '-' + clean.substring(4, 8).toUpperCase();
             }
             var covEl = document.getElementById('settings-coverage');
-            covEl.innerHTML = 'All websites · Real-time AI<br>Ads &amp; trackers blocked · 1 device';
+            covEl.innerHTML = 'All websites · Real-time AI<br>Ads &amp; trackers blocked · 2 devices';
             covEl.style.textAlign = 'right';
           }
         }
