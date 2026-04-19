@@ -211,8 +211,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       const selectedPlan = storageData.selectedPlan || 'monthly';
 
-      // Insert profile row
-      await sbClient.from('profiles').insert({
+      // Insert profile row (best-effort — webhook will create if this fails)
+      const { error: profileError } = await sbClient.from('profiles').insert({
         id: authData.user.id,
         first_name: first,
         last_name: last,
@@ -220,6 +220,9 @@ document.addEventListener('DOMContentLoaded', () => {
         plan: selectedPlan,
         activated: false,
       });
+      if (profileError) {
+        console.warn('Profile insert failed (webhook will handle):', profileError.message);
+      }
 
       chrome.storage.local.set({
         user: { firstName: first, lastName: last, email: email },
@@ -322,7 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .from('profiles')
         .select('first_name, activated, plan')
         .eq('id', authData.user.id)
-        .single();
+        .maybeSingle();
 
       if (profile) {
         chrome.storage.local.set({
@@ -453,12 +456,16 @@ document.addEventListener('DOMContentLoaded', () => {
             .from('profiles')
             .select('id, created_at, plan, email')
             .eq('id', session.user.id)
-            .single();
+            .maybeSingle();
 
           if (profile) {
             if (profile.email) {
               document.getElementById('settings-email').textContent = profile.email;
-              chrome.storage.local.set({ user: { email: profile.email } });
+              chrome.storage.local.get(['user'], (existing) => {
+                const user = existing.user || {};
+                user.email = profile.email;
+                chrome.storage.local.set({ user });
+              });
             }
             if (profile.plan) {
               document.getElementById('settings-plan').textContent = profile.plan === 'yearly' ? 'Yearly Protection $49.99/yr' : 'Monthly Protection $4.99/mo';
@@ -607,8 +614,15 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('qr-stop-btn').addEventListener('click', stopQRScanner);
 
   document.getElementById('btn-logout').addEventListener('click', async () => {
-    if (sbClient) await sbClient.auth.signOut();
-    chrome.storage.local.clear(() => {
+    if (sbClient) {
+      try { await sbClient.auth.signOut(); } catch (e) { /* proceed with local cleanup */ }
+    }
+    // Remove auth/session keys but preserve deviceId, stats, and settings
+    chrome.storage.local.remove([
+      'user', 'firstName', 'activated', 'selectedPlan',
+      'accessToken', 'refreshToken', 'userId',
+      'paymentEmail', 'deviceRegistered', 'deviceLimitReached', 'registeredDevices',
+    ], () => {
       showView('view-welcome');
     });
   });
@@ -627,8 +641,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Listen for device limit changes while popup is open
   chrome.storage.onChanged.addListener((changes) => {
-    if (changes.deviceLimitReached && changes.deviceLimitReached.newValue === true) {
-      showDeviceLimitError();
+    if (changes.deviceLimitReached) {
+      if (changes.deviceLimitReached.newValue === true) {
+        showDeviceLimitError();
+      } else {
+        // Device limit resolved — restore normal state
+        document.getElementById('device-limit-error').classList.remove('show');
+        document.getElementById('btn-open-payment').style.display = '';
+        loadActiveView();
+      }
     }
   });
 
@@ -664,7 +685,7 @@ document.addEventListener('DOMContentLoaded', () => {
           .from('profiles')
           .select('first_name, activated, plan, email')
           .eq('id', session.user.id)
-          .single();
+          .maybeSingle();
 
         if (profile) {
           chrome.storage.local.set({
@@ -703,12 +724,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 .from('profiles')
                 .select('first_name, activated, plan, email')
                 .eq('id', restored.session.user.id)
-                .single();
+                .maybeSingle();
               if (profile && profile.activated) {
                 chrome.storage.local.set({ activated: true });
                 loadActiveView();
-              } else if (profile) {
-                paymentEmail = profile.email || restored.session.user.email;
+              } else {
+                paymentEmail = (profile && profile.email) || restored.session.user.email;
                 showView('view-waiting');
                 startActivationPolling();
               }
@@ -719,18 +740,23 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
 
-        // Check if user was mid-signup
-        if (localData.user && localData.user.email && localData.activated === false) {
+        // Check if user was mid-signup (activated is false or undefined/missing)
+        if (localData.user && localData.user.email && !localData.activated) {
           paymentEmail = localData.user.email;
           showView('view-waiting');
           startActivationPolling();
+        } else if (localData.user && localData.user.email) {
+          // Returning user with expired session — show login, not signup
+          showView('view-login');
         }
       }
     } catch (err) {
-      if (localData.user && localData.user.email && localData.activated === false) {
+      if (localData.user && localData.user.email && !localData.activated) {
         paymentEmail = localData.user.email;
         showView('view-waiting');
         startActivationPolling();
+      } else if (localData.user && localData.user.email) {
+        showView('view-login');
       }
     }
   }
