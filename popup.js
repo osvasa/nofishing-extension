@@ -10,17 +10,28 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── Fast path: show correct view BEFORE Supabase initializes ──
   // Activated users must never flash the signup screen
   let fastPathHandled = false;
-  chrome.storage.local.get(['activated', 'deviceLimitReached'], (data) => {
+  let fastPathEmail = '';
+  chrome.storage.local.get(['activated', 'deviceLimitReached', 'user', 'sitesVisited', 'threatsBlocked', 'totalTrackersBlocked'], (data) => {
+    document.querySelectorAll('.view').forEach((v) => v.classList.remove('active'));
     if (data.activated === true) {
       fastPathHandled = true;
-      document.querySelectorAll('.view').forEach((v) => v.classList.remove('active'));
       if (data.deviceLimitReached === true) {
         document.getElementById('view-waiting').classList.add('active');
         document.getElementById('device-limit-error').classList.add('show');
         document.getElementById('btn-open-payment').style.display = 'none';
       } else {
         document.getElementById('view-active').classList.add('active');
+        document.getElementById('stat-sites').textContent = data.sitesVisited || 0;
+        document.getElementById('stat-threats').textContent = data.threatsBlocked || 0;
+        document.getElementById('stat-ads').textContent = data.totalTrackersBlocked || 0;
       }
+    } else if (data.user && data.user.email) {
+      fastPathHandled = true;
+      fastPathEmail = data.user.email;
+      document.getElementById('view-waiting').classList.add('active');
+    } else {
+      // No user data — show default welcome/signup
+      document.getElementById('view-welcome').classList.add('active');
     }
   });
 
@@ -436,6 +447,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Ignore polling errors, will retry next interval
       }
     }, 5000);
+  }
+
+  // Start polling immediately if fast path detected unactivated user
+  if (fastPathEmail) {
+    paymentEmail = fastPathEmail;
+    startActivationPolling();
   }
 
   // ── Active view ──
