@@ -7,9 +7,28 @@ let sbClient = null;
 
 document.addEventListener('DOMContentLoaded', () => {
 
-  // Initialize Supabase
+  // Initialize Supabase with chrome.storage.local adapter (localStorage is ephemeral in popups)
   if (window.supabase && window.supabase.createClient) {
-    sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const chromeStorageAdapter = {
+      getItem: (key) => new Promise((resolve) => {
+        chrome.storage.local.get([key], (result) => resolve(result[key] || null));
+      }),
+      setItem: (key, value) => new Promise((resolve) => {
+        chrome.storage.local.set({ [key]: value }, () => resolve());
+      }),
+      removeItem: (key) => new Promise((resolve) => {
+        chrome.storage.local.remove([key], () => resolve());
+      }),
+    };
+
+    sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth: {
+        storage: chromeStorageAdapter,
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: false,
+      },
+    });
   }
   console.log('Supabase client:', sbClient ? 'initialized' : 'FAILED');
 
@@ -310,10 +329,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Persist session tokens
       if (authData.session) {
-        chrome.storage.local.set({
-          accessToken: authData.session.access_token,
-          refreshToken: authData.session.refresh_token,
-          userId: authData.user.id,
+        await new Promise((resolve) => {
+          chrome.storage.local.set({
+            accessToken: authData.session.access_token,
+            refreshToken: authData.session.refresh_token,
+            userId: authData.user.id,
+          }, resolve);
         });
       }
 
@@ -325,11 +346,15 @@ document.addEventListener('DOMContentLoaded', () => {
         .single();
 
       if (profile) {
-        chrome.storage.local.set({
+        const loginData = {
           user: { firstName: profile.first_name, email: email },
           firstName: profile.first_name,
           selectedPlan: profile.plan || 'monthly',
-          activated: profile.activated || false,
+        };
+        if (profile.activated) loginData.activated = true;
+
+        await new Promise((resolve) => {
+          chrome.storage.local.set(loginData, resolve);
         });
 
         if (profile.activated) {
