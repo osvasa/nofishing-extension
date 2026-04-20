@@ -211,8 +211,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       const selectedPlan = storageData.selectedPlan || 'monthly';
 
-      // Insert profile row (best-effort — webhook will create if this fails)
-      const { error: profileError } = await sbClient.from('profiles').insert({
+      // Insert profile row
+      await sbClient.from('profiles').insert({
         id: authData.user.id,
         first_name: first,
         last_name: last,
@@ -220,9 +220,6 @@ document.addEventListener('DOMContentLoaded', () => {
         plan: selectedPlan,
         activated: false,
       });
-      if (profileError) {
-        console.warn('Profile insert failed (webhook will handle):', profileError.message);
-      }
 
       chrome.storage.local.set({
         user: { firstName: first, lastName: last, email: email },
@@ -313,12 +310,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Persist session tokens
       if (authData.session) {
-        await new Promise((resolve) => {
-          chrome.storage.local.set({
-            accessToken: authData.session.access_token,
-            refreshToken: authData.session.refresh_token,
-            userId: authData.user.id,
-          }, resolve);
+        chrome.storage.local.set({
+          accessToken: authData.session.access_token,
+          refreshToken: authData.session.refresh_token,
+          userId: authData.user.id,
         });
       }
 
@@ -327,25 +322,17 @@ document.addEventListener('DOMContentLoaded', () => {
         .from('profiles')
         .select('first_name, activated, plan')
         .eq('id', authData.user.id)
-        .maybeSingle();
+        .single();
 
       if (profile) {
-        // Read current activated state — never downgrade from true to false
-        const currentState = await new Promise((resolve) => {
-          chrome.storage.local.get(['activated'], resolve);
-        });
-        const isActivated = profile.activated || currentState.activated === true;
-
-        await new Promise((resolve) => {
-          chrome.storage.local.set({
-            user: { firstName: profile.first_name, email: email },
-            firstName: profile.first_name,
-            selectedPlan: profile.plan || 'monthly',
-            activated: isActivated,
-          }, resolve);
+        chrome.storage.local.set({
+          user: { firstName: profile.first_name, email: email },
+          firstName: profile.first_name,
+          selectedPlan: profile.plan || 'monthly',
+          activated: profile.activated || false,
         });
 
-        if (isActivated) {
+        if (profile.activated) {
           loadActiveView();
         } else {
           paymentEmail = email;
@@ -353,17 +340,9 @@ document.addEventListener('DOMContentLoaded', () => {
           startActivationPolling();
         }
       } else {
-        // No profile — check if already activated locally
-        const currentState = await new Promise((resolve) => {
-          chrome.storage.local.get(['activated'], resolve);
-        });
-        if (currentState.activated === true) {
-          loadActiveView();
-        } else {
-          paymentEmail = email;
-          showView('view-waiting');
-          startActivationPolling();
-        }
+        paymentEmail = email;
+        showView('view-waiting');
+        startActivationPolling();
       }
 
     } catch (err) {
@@ -402,13 +381,11 @@ document.addEventListener('DOMContentLoaded', () => {
           clearInterval(pollingInterval);
           pollingInterval = null;
 
-          await new Promise((resolve) => {
-            chrome.storage.local.set({
-              user: { firstName: data.first_name || '', email: paymentEmail },
-              firstName: data.first_name || '',
-              selectedPlan: data.plan || 'monthly',
-              activated: true,
-            }, resolve);
+          chrome.storage.local.set({
+            user: { firstName: data.first_name || '', email: paymentEmail },
+            firstName: data.first_name || '',
+            selectedPlan: data.plan || 'monthly',
+            activated: true,
           });
 
           loadActiveView();
@@ -476,16 +453,12 @@ document.addEventListener('DOMContentLoaded', () => {
             .from('profiles')
             .select('id, created_at, plan, email')
             .eq('id', session.user.id)
-            .maybeSingle();
+            .single();
 
           if (profile) {
             if (profile.email) {
               document.getElementById('settings-email').textContent = profile.email;
-              chrome.storage.local.get(['user'], (existing) => {
-                const user = existing.user || {};
-                user.email = profile.email;
-                chrome.storage.local.set({ user });
-              });
+              chrome.storage.local.set({ user: { email: profile.email } });
             }
             if (profile.plan) {
               document.getElementById('settings-plan').textContent = profile.plan === 'yearly' ? 'Yearly Protection $49.99/yr' : 'Monthly Protection $4.99/mo';
@@ -506,7 +479,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 'NFAI-' + clean.substring(0, 4).toUpperCase() + '-' + clean.substring(4, 8).toUpperCase();
             }
             var covEl = document.getElementById('settings-coverage');
-            covEl.innerHTML = 'All websites · Real-time AI<br>Ads &amp; trackers blocked · 2 devices';
+            covEl.innerHTML = 'All websites · Real-time AI<br>Ads &amp; trackers blocked · 1 device';
             covEl.style.textAlign = 'right';
           }
         }
@@ -634,15 +607,8 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('qr-stop-btn').addEventListener('click', stopQRScanner);
 
   document.getElementById('btn-logout').addEventListener('click', async () => {
-    if (sbClient) {
-      try { await sbClient.auth.signOut(); } catch (e) { /* proceed with local cleanup */ }
-    }
-    // Remove auth/session keys but preserve deviceId, stats, and settings
-    chrome.storage.local.remove([
-      'user', 'firstName', 'activated', 'selectedPlan',
-      'accessToken', 'refreshToken', 'userId',
-      'paymentEmail', 'deviceRegistered', 'deviceLimitReached', 'registeredDevices',
-    ], () => {
+    if (sbClient) await sbClient.auth.signOut();
+    chrome.storage.local.clear(() => {
       showView('view-welcome');
     });
   });
@@ -661,15 +627,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Listen for device limit changes while popup is open
   chrome.storage.onChanged.addListener((changes) => {
-    if (changes.deviceLimitReached) {
-      if (changes.deviceLimitReached.newValue === true) {
-        showDeviceLimitError();
-      } else {
-        // Device limit resolved — restore normal state
-        document.getElementById('device-limit-error').classList.remove('show');
-        document.getElementById('btn-open-payment').style.display = '';
-        loadActiveView();
-      }
+    if (changes.deviceLimitReached && changes.deviceLimitReached.newValue === true) {
+      showDeviceLimitError();
     }
   });
 
@@ -705,23 +664,18 @@ document.addEventListener('DOMContentLoaded', () => {
           .from('profiles')
           .select('first_name, activated, plan, email')
           .eq('id', session.user.id)
-          .maybeSingle();
+          .single();
 
         if (profile) {
-          const updates = {
+          const storageUpdate = {
             user: { firstName: profile.first_name, email: profile.email },
             firstName: profile.first_name,
             selectedPlan: profile.plan || 'monthly',
           };
-          // Never downgrade activated from true to false — only logout should do that
-          if (profile.activated) updates.activated = true;
+          if (profile.activated) storageUpdate.activated = true;
+          chrome.storage.local.set(storageUpdate);
 
-          chrome.storage.local.set(updates);
-
-          if (profile.activated) {
-            loadActiveView();
-          } else if (localData.activated === true) {
-            // Local says activated but Supabase says not — trust local (stale server data)
+          if (profile.activated || localData.activated === true) {
             loadActiveView();
           } else {
             paymentEmail = profile.email || session.user.email;
@@ -752,11 +706,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 .from('profiles')
                 .select('first_name, activated, plan, email')
                 .eq('id', restored.session.user.id)
-                .maybeSingle();
-              if (profile && profile.activated) {
+                .single();
+              if ((profile && profile.activated) || localData.activated === true) {
                 chrome.storage.local.set({ activated: true });
-                loadActiveView();
-              } else if (localData.activated === true) {
                 loadActiveView();
               } else {
                 paymentEmail = (profile && profile.email) || restored.session.user.email;
@@ -770,27 +722,18 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
 
-        // Check if user was mid-signup (activated is false or undefined/missing)
-        if (localData.activated === true) {
-          loadActiveView();
-        } else if (localData.user && localData.user.email && !localData.activated) {
+        // Check if user was mid-signup
+        if (localData.user && localData.user.email && !localData.activated) {
           paymentEmail = localData.user.email;
           showView('view-waiting');
           startActivationPolling();
-        } else if (localData.user && localData.user.email) {
-          // Returning user with expired session — show login, not signup
-          showView('view-login');
         }
       }
     } catch (err) {
-      if (localData.activated === true) {
-        loadActiveView();
-      } else if (localData.user && localData.user.email && !localData.activated) {
+      if (localData.user && localData.user.email && !localData.activated) {
         paymentEmail = localData.user.email;
         showView('view-waiting');
         startActivationPolling();
-      } else if (localData.user && localData.user.email) {
-        showView('view-login');
       }
     }
   }
