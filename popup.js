@@ -688,20 +688,28 @@ document.addEventListener('DOMContentLoaded', () => {
           .maybeSingle();
 
         if (profile) {
-          chrome.storage.local.set({
+          const updates = {
             user: { firstName: profile.first_name, email: profile.email },
             firstName: profile.first_name,
             selectedPlan: profile.plan || 'monthly',
-            activated: profile.activated || false,
-          });
+          };
+          // Never downgrade activated from true to false — only logout should do that
+          if (profile.activated) updates.activated = true;
+
+          chrome.storage.local.set(updates);
 
           if (profile.activated) {
+            loadActiveView();
+          } else if (localData.activated === true) {
+            // Local says activated but Supabase says not — trust local (stale server data)
             loadActiveView();
           } else {
             paymentEmail = profile.email || session.user.email;
             showView('view-waiting');
             startActivationPolling();
           }
+        } else if (localData.activated === true) {
+          loadActiveView();
         } else {
           paymentEmail = session.user.email;
           showView('view-waiting');
@@ -728,6 +736,8 @@ document.addEventListener('DOMContentLoaded', () => {
               if (profile && profile.activated) {
                 chrome.storage.local.set({ activated: true });
                 loadActiveView();
+              } else if (localData.activated === true) {
+                loadActiveView();
               } else {
                 paymentEmail = (profile && profile.email) || restored.session.user.email;
                 showView('view-waiting');
@@ -741,7 +751,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Check if user was mid-signup (activated is false or undefined/missing)
-        if (localData.user && localData.user.email && !localData.activated) {
+        if (localData.activated === true) {
+          loadActiveView();
+        } else if (localData.user && localData.user.email && !localData.activated) {
           paymentEmail = localData.user.email;
           showView('view-waiting');
           startActivationPolling();
@@ -751,7 +763,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     } catch (err) {
-      if (localData.user && localData.user.email && !localData.activated) {
+      if (localData.activated === true) {
+        loadActiveView();
+      } else if (localData.user && localData.user.email && !localData.activated) {
         paymentEmail = localData.user.email;
         showView('view-waiting');
         startActivationPolling();
