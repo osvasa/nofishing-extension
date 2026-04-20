@@ -21,14 +21,20 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('btn-open-payment').style.display = 'none';
       } else {
         document.getElementById('view-active').classList.add('active');
-        document.getElementById('stat-sites').textContent = data.sitesVisited || 0;
-        document.getElementById('stat-threats').textContent = data.threatsBlocked || 0;
-        document.getElementById('stat-ads').textContent = data.totalTrackersBlocked || 0;
+        // Defer animation until animateCount is defined
+        setTimeout(() => {
+          animateStats(data.sitesVisited || 0, data.threatsBlocked || 0, data.totalTrackersBlocked || 0);
+        }, 0);
       }
     } else if (data.user && data.user.email) {
       fastPathHandled = true;
       fastPathEmail = data.user.email;
       document.getElementById('view-waiting').classList.add('active');
+      // Defer polling until startActivationPolling is defined (after synchronous script runs)
+      setTimeout(() => {
+        paymentEmail = data.user.email;
+        startActivationPolling();
+      }, 0);
     } else {
       // No user data — show default welcome/signup
       document.getElementById('view-welcome').classList.add('active');
@@ -449,29 +455,60 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 5000);
   }
 
-  // Start polling immediately if fast path detected unactivated user
-  if (fastPathEmail) {
-    paymentEmail = fastPathEmail;
-    startActivationPolling();
-  }
-
   // ── Active view ──
 
   let adsRefreshInterval = null;
 
+  function animateCount(el, from, to, duration) {
+    if (from === to) { el.textContent = to; return; }
+    const start = performance.now();
+    function step(now) {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+      el.textContent = Math.round(from + (to - from) * eased);
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function animateStats(sites, threats, ads) {
+    const elSites = document.getElementById('stat-sites');
+    const elThreats = document.getElementById('stat-threats');
+    const elAds = document.getElementById('stat-ads');
+    animateCount(elSites, parseInt(elSites.textContent) || 0, sites, 600);
+    animateCount(elThreats, parseInt(elThreats.textContent) || 0, threats, 600);
+    animateCount(elAds, parseInt(elAds.textContent) || 0, ads, 600);
+  }
+
   function refreshStats() {
     chrome.storage.local.get(['sitesVisited', 'threatsBlocked', 'totalTrackersBlocked'], (data) => {
-      document.getElementById('stat-sites').textContent = data.sitesVisited || 0;
-      document.getElementById('stat-threats').textContent = data.threatsBlocked || 0;
-      document.getElementById('stat-ads').textContent = data.totalTrackersBlocked || 0;
+      animateStats(data.sitesVisited || 0, data.threatsBlocked || 0, data.totalTrackersBlocked || 0);
     });
   }
+
+  // Live real-time updates while popup is open
+  chrome.storage.onChanged.addListener((changes) => {
+    if (changes.sitesVisited || changes.threatsBlocked || changes.totalTrackersBlocked) {
+      const elSites = document.getElementById('stat-sites');
+      const elThreats = document.getElementById('stat-threats');
+      const elAds = document.getElementById('stat-ads');
+      if (changes.sitesVisited) {
+        animateCount(elSites, parseInt(elSites.textContent) || 0, changes.sitesVisited.newValue || 0, 400);
+      }
+      if (changes.threatsBlocked) {
+        animateCount(elThreats, parseInt(elThreats.textContent) || 0, changes.threatsBlocked.newValue || 0, 400);
+      }
+      if (changes.totalTrackersBlocked) {
+        animateCount(elAds, parseInt(elAds.textContent) || 0, changes.totalTrackersBlocked.newValue || 0, 400);
+      }
+    }
+  });
 
   function loadActiveView() {
     showView('view-active');
     refreshStats();
 
-    // Refresh ads blocked count every 3 seconds while popup is open
+    // Refresh stats every 3 seconds as fallback
     if (adsRefreshInterval) clearInterval(adsRefreshInterval);
     adsRefreshInterval = setInterval(refreshStats, 3000);
   }
@@ -503,6 +540,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('settings-plan').textContent = plan === 'yearly' ? 'Yearly Protection $49.99/yr' : 'Monthly Protection $4.99/mo';
     document.getElementById('settings-sites').textContent = data.sitesVisited || 0;
     document.getElementById('settings-threats').textContent = data.threatsBlocked || 0;
+    const manifestData = chrome.runtime.getManifest();
+    document.getElementById('settings-version').textContent = 'v' + manifestData.version;
 
     if (sbClient) {
       try {
