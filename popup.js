@@ -313,10 +313,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Persist session tokens
       if (authData.session) {
-        chrome.storage.local.set({
-          accessToken: authData.session.access_token,
-          refreshToken: authData.session.refresh_token,
-          userId: authData.user.id,
+        await new Promise((resolve) => {
+          chrome.storage.local.set({
+            accessToken: authData.session.access_token,
+            refreshToken: authData.session.refresh_token,
+            userId: authData.user.id,
+          }, resolve);
         });
       }
 
@@ -328,14 +330,22 @@ document.addEventListener('DOMContentLoaded', () => {
         .maybeSingle();
 
       if (profile) {
-        chrome.storage.local.set({
-          user: { firstName: profile.first_name, email: email },
-          firstName: profile.first_name,
-          selectedPlan: profile.plan || 'monthly',
-          activated: profile.activated || false,
+        // Read current activated state — never downgrade from true to false
+        const currentState = await new Promise((resolve) => {
+          chrome.storage.local.get(['activated'], resolve);
+        });
+        const isActivated = profile.activated || currentState.activated === true;
+
+        await new Promise((resolve) => {
+          chrome.storage.local.set({
+            user: { firstName: profile.first_name, email: email },
+            firstName: profile.first_name,
+            selectedPlan: profile.plan || 'monthly',
+            activated: isActivated,
+          }, resolve);
         });
 
-        if (profile.activated) {
+        if (isActivated) {
           loadActiveView();
         } else {
           paymentEmail = email;
@@ -343,9 +353,17 @@ document.addEventListener('DOMContentLoaded', () => {
           startActivationPolling();
         }
       } else {
-        paymentEmail = email;
-        showView('view-waiting');
-        startActivationPolling();
+        // No profile — check if already activated locally
+        const currentState = await new Promise((resolve) => {
+          chrome.storage.local.get(['activated'], resolve);
+        });
+        if (currentState.activated === true) {
+          loadActiveView();
+        } else {
+          paymentEmail = email;
+          showView('view-waiting');
+          startActivationPolling();
+        }
       }
 
     } catch (err) {
@@ -384,11 +402,13 @@ document.addEventListener('DOMContentLoaded', () => {
           clearInterval(pollingInterval);
           pollingInterval = null;
 
-          chrome.storage.local.set({
-            user: { firstName: data.first_name || '', email: paymentEmail },
-            firstName: data.first_name || '',
-            selectedPlan: data.plan || 'monthly',
-            activated: true,
+          await new Promise((resolve) => {
+            chrome.storage.local.set({
+              user: { firstName: data.first_name || '', email: paymentEmail },
+              firstName: data.first_name || '',
+              selectedPlan: data.plan || 'monthly',
+              activated: true,
+            }, resolve);
           });
 
           loadActiveView();
