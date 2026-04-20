@@ -7,6 +7,23 @@ let sbClient = null;
 
 document.addEventListener('DOMContentLoaded', () => {
 
+  // ── Fast path: show correct view BEFORE Supabase initializes ──
+  // Activated users must never flash the signup screen
+  let fastPathHandled = false;
+  chrome.storage.local.get(['activated', 'deviceLimitReached'], (data) => {
+    if (data.activated === true) {
+      fastPathHandled = true;
+      document.querySelectorAll('.view').forEach((v) => v.classList.remove('active'));
+      if (data.deviceLimitReached === true) {
+        document.getElementById('view-waiting').classList.add('active');
+        document.getElementById('device-limit-error').classList.add('show');
+        document.getElementById('btn-open-payment').style.display = 'none';
+      } else {
+        document.getElementById('view-active').classList.add('active');
+      }
+    }
+  });
+
   // Initialize Supabase with chrome.storage.local adapter (localStorage is ephemeral in popups)
   if (window.supabase && window.supabase.createClient) {
     const chromeStorageAdapter = {
